@@ -1,5 +1,6 @@
 import { BRAND } from "@/types/brand";
 import Image from "next/image";
+import { Pencil, Trash2, Eye } from "lucide-react"; // ✅ Make sure lucide-react is installed
 
 const brandData: BRAND[] = [
   {
@@ -9,6 +10,7 @@ const brandData: BRAND[] = [
     revenues: "5,768",
     sales: 590,
     conversion: 4.8,
+    status: "Active",
   },
   {
     logo: "/images/brand/brand-02.svg",
@@ -17,6 +19,7 @@ const brandData: BRAND[] = [
     revenues: "4,635",
     sales: 467,
     conversion: 4.3,
+    status: "Inactive",
   },
   {
     logo: "/images/brand/brand-03.svg",
@@ -25,6 +28,7 @@ const brandData: BRAND[] = [
     revenues: "4,290",
     sales: 420,
     conversion: 3.7,
+    status: "Active",
   },
   {
     logo: "/images/brand/brand-04.svg",
@@ -33,6 +37,7 @@ const brandData: BRAND[] = [
     revenues: "3,580",
     sales: 389,
     conversion: 2.5,
+    status: "Active",
   },
   {
     logo: "/images/brand/brand-05.svg",
@@ -41,77 +46,90 @@ const brandData: BRAND[] = [
     revenues: "6,768",
     sales: 390,
     conversion: 4.2,
+    status: "Inactive",
   },
 ];
 
 const TableOne = () => {
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+    <div className="rounded-lg border border-stroke bg-white px-5 pb-4 pt-6 shadow-md dark:border-strokedark dark:bg-boxdark sm:px-7.5">
       <h4 className="mb-6 text-xl font-semibold text-black dark:text-white">
         Top Channels
       </h4>
 
-      <div className="flex flex-col">
-        <div className="grid grid-cols-3 rounded-sm bg-gray-2 dark:bg-meta-4 sm:grid-cols-5">
-          <div className="p-2.5 xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Source
-            </h5>
-          </div>
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Visitors
-            </h5>
-          </div>
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Revenues
-            </h5>
-          </div>
-          <div className="hidden p-2.5 text-center sm:block xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Sales
-            </h5>
-          </div>
-          <div className="hidden p-2.5 text-center sm:block xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Conversion
-            </h5>
-          </div>
+      <div className="flex flex-col overflow-x-auto">
+        <div className="grid grid-cols-5 rounded-md bg-gray-2 text-sm font-semibold dark:bg-meta-4 sm:grid-cols-7">
+          <div className="p-3">Source</div>
+          <div className="p-3 text-center">Visitors</div>
+          <div className="p-3 text-center">Revenues</div>
+          <div className="hidden p-3 text-center sm:block">Sales</div>
+          <div className="hidden p-3 text-center sm:block">Conversion</div>
+          <div className="p-3 text-center">Status</div>
+          <div className="p-3 text-center">Actions</div>
         </div>
 
         {brandData.map((brand, key) => (
           <div
-            className={`grid grid-cols-3 sm:grid-cols-5 ${
+            className={`grid grid-cols-5 sm:grid-cols-7 items-center hover:bg-gray-50 dark:hover:bg-meta-3 transition ${
               key === brandData.length - 1
                 ? ""
                 : "border-b border-stroke dark:border-strokedark"
             }`}
             key={key}
           >
-            <div className="flex items-center gap-3 p-2.5 xl:p-5">
-              <div className="flex-shrink-0">
-                <Image src={brand.logo} alt="Brand" width={48} height={48} />
-              </div>
-              <p className="hidden text-black dark:text-white sm:block">
-                {brand.name}
-              </p>
+            {/* Source */}
+            <div className="flex items-center gap-3 p-3">
+              <Image src={brand.logo} alt="Brand" width={40} height={40} />
+              <p className="text-black dark:text-white">{brand.name}</p>
             </div>
 
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-black dark:text-white">{brand.visitors}K</p>
+            {/* Visitors */}
+            <div className="text-center p-3 text-black dark:text-white">
+              {brand.visitors}K
             </div>
 
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">${brand.revenues}</p>
+            {/* Revenues */}
+            <div className="text-center p-3 text-meta-3">
+              ${brand.revenues}
             </div>
 
-            <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-              <p className="text-black dark:text-white">{brand.sales}</p>
+            {/* Sales */}
+            <div className="hidden text-center p-3 sm:block text-black dark:text-white">
+              {brand.sales}
             </div>
 
-            <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-              <p className="text-meta-5">{brand.conversion}%</p>
+            {/* Conversion */}
+            <div className="hidden text-center p-3 sm:block text-meta-5">
+              {brand.conversion}%
+            </div>
+
+            {/* Status */}
+            <div className="text-center p-3">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  brand.status === "Active"
+                    ? "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300"
+                    : "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
+                }`}
+              >
+                {brand.status}
+              </span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-center gap-2 p-3">
+              {/* View */}
+              <button className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-300 transition">
+                <Eye size={18} />
+              </button>
+              {/* Update */}
+              <button className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 transition">
+                <Pencil size={18} />
+              </button>
+              {/* Delete */}
+              <button className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 transition">
+                <Trash2 size={18} />
+              </button>
             </div>
           </div>
         ))}
