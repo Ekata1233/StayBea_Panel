@@ -8,8 +8,7 @@ const InterestedInSchema = new Schema<IInterestedIn>({
   options: [
     {
       _id: { type: Schema.Types.ObjectId, auto: true }, // auto-generate ObjectId
-      label: { type: String, required: true },          // e.g. "Men"
-      value: { type: String, required: true },          // e.g. "men"
+      label: { type: String, required: true }         // e.g. "men"
     },
   ],
 });
