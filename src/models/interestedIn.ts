@@ -1,5 +1,5 @@
+import { IInterestedIn } from "@/types/interestedIn";
 import { Schema, model } from "mongoose";
-import { IInterestedIn } from "../types/interestedIn";
 
 // Mongoose schema
 const InterestedInSchema = new Schema<IInterestedIn>({
