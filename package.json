@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "apexcharts": "^4.7.0",
+    "axios": "^1.11.0",
     "flatpickr": "^4.6.13",
     "jsvectormap": "^1.6.0",
     "lucide-react": "^0.543.0",
@@ -22,7 +23,7 @@
   },
   "devDependencies": {
     "@types/mongoose": "^5.11.96",
-    "@types/node": "^20",
+    "@types/node": "^20.19.13",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
