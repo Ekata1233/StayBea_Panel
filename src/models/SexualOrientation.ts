@@ -10,7 +10,6 @@ const SexualOrientationSchema = new Schema<ISexualOrientation>({
       _id: { type: Schema.Types.ObjectId, auto: true },
       label: { type: String, required: true },
       description: { type: String, required: true },
-      value: { type: String, required: true },
     },
   ],
 });

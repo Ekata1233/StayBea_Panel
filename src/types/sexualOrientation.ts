@@ -7,6 +7,5 @@ export interface ISexualOrientation extends Document {
     _id: Types.ObjectId; // auto-generated unique ID for each option
     label: string; // option title (20–25 chars limit)
     description: string; // option description (50–60 chars limit)
-    value: string; // unique string value
   }[];
 }

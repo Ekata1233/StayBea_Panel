@@ -13,7 +13,6 @@ export const optionSchema = z.object({
     .string()
     .min(30, "Option description must be at least 30 characters")
     .max(60, "Option description must be at most 60 characters"),
-  value: z.string().min(1, "Value required"),
 });
 
 export const sexualOrientationSchema = z.object({
