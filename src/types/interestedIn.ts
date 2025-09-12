@@ -6,6 +6,5 @@ export interface IInterestedIn extends Document {
   options: {
     _id: Types.ObjectId;
     label: string;
-    value: string;
   }[];
 }
