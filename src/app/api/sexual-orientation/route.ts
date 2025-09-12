@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
 }
 
 
+
 // ✅ GET - get all sexual orientations
 export async function GET(req: NextRequest) {
   await connectToDatabase();
@@ -70,9 +71,24 @@ export async function GET(req: NextRequest) {
     }
 
     const docs = await SexualOrientation.find(filter).lean();
-    return NextResponse.json({ success: true, data: docs }, { status: 200, headers: corsHeaders });
+
+    if (!docs || docs.length === 0) {
+      return NextResponse.json(
+        { success: true, message: "No data available", data: [] },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    return NextResponse.json(
+      { success: true, data: docs },
+      { status: 200, headers: corsHeaders }
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ success: false, message }, { status: 500, headers: corsHeaders });
+    return NextResponse.json(
+      { success: false, message },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
+
