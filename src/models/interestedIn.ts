@@ -1,5 +1,5 @@
 import { IInterestedIn } from "@/types/interestedIn";
-import { Schema, model } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 // Mongoose schema
 const InterestedInSchema = new Schema<IInterestedIn>({
@@ -14,7 +14,4 @@ const InterestedInSchema = new Schema<IInterestedIn>({
 });
 
 // Example model
-export const InterestedIn = model<IInterestedIn>(
-  "InterestedIn",
-  InterestedInSchema
-);
+export const InterestedIn =   models.InterestedIn || model<IInterestedIn>("InterestedIn", InterestedInSchema);

@@ -1,9 +1,8 @@
 // app/api/interested-in/[id]/route.ts
-import { InterestedIn } from "@/models/interestedIn";
-import { connectToDatabase } from "@/utils/db";
 import { NextResponse } from "next/server";
+import { connectToDatabase } from "@/utils/db";
+import { InterestedIn } from "@/models/interestedIn";
 
-// CORS headers
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
@@ -15,47 +14,63 @@ export async function OPTIONS() {
   return NextResponse.json({}, { status: 204, headers: corsHeaders });
 }
 
-// ✅ PATCH (Add new option to InterestedIn)
+// ✅ PATCH route
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     await connectToDatabase();
-    const { id } = params;
     const body = await req.json();
 
-    if (!body?.label) {
+    // If you want to update parent fields directly (title, description, options)
+    if (body.title || body.description || body.options) {
+      const updated = await InterestedIn.findByIdAndUpdate(
+        params.id,
+        { $set: body },
+        { new: true }
+      );
+
+      if (!updated) {
+        return NextResponse.json(
+          { success: false, message: "Document not found" },
+          { status: 404, headers: corsHeaders }
+        );
+      }
+
       return NextResponse.json(
-        { success: false, message: "Option label is required" },
-        { status: 400, headers: corsHeaders }
+        { success: true, message: "Updated successfully", data: updated },
+        { status: 200, headers: corsHeaders }
       );
     }
 
-    // Add new option to options array
-    const updated = await InterestedIn.findByIdAndUpdate(
-      id,
-      { $push: { options: { label: body.label } } },
-      { new: true } // Return updated document
-    );
+    // ✅ If you want to update **only one option label**
+    if (body.optionId && body.label) {
+      const updated = await InterestedIn.findOneAndUpdate(
+        { _id: params.id, "options._id": body.optionId },
+        { $set: { "options.$.label": body.label } },
+        { new: true }
+      );
 
-    if (!updated) {
+      if (!updated) {
+        return NextResponse.json(
+          { success: false, message: "Option not found" },
+          { status: 404, headers: corsHeaders }
+        );
+      }
+
       return NextResponse.json(
-        { success: false, message: "Document not found" },
-        { status: 404, headers: corsHeaders }
+        { success: true, message: "Option updated successfully", data: updated },
+        { status: 200, headers: corsHeaders }
       );
     }
 
     return NextResponse.json(
-      {
-        success: true,
-        message: "Option added successfully",
-        data: updated,
-      },
-      { status: 200, headers: corsHeaders }
+      { success: false, message: "Invalid request body" },
+      { status: 400, headers: corsHeaders }
     );
   } catch (error: any) {
-    console.error("PATCH /interested-in/[id] error:", error);
     return NextResponse.json(
-      { success: false, message: "Internal server error" },
+      { success: false, message: error.message },
       { status: 500, headers: corsHeaders }
     );
   }
 }
+  
