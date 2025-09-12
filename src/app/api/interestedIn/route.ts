@@ -1,5 +1,5 @@
 // app/api/interested-in/route.ts
-import { InterestedIn } from "@/models/interestedIn";
+import { InterestedIn } from "@/models/InterestedIn";
 import { connectToDatabase } from "@/utils/db";
 import { interestedInZ } from "@/validation/interestedIn";
 import { NextResponse } from "next/server";

@@ -1,7 +1,7 @@
 // app/api/interested-in/[id]/route.ts
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/utils/db";
-import { InterestedIn } from "@/models/interestedIn";
+import { InterestedIn } from "@/models/InterestedIn";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
