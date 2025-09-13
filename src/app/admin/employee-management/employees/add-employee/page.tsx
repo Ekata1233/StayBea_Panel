@@ -262,7 +262,7 @@ const AddEmployee = () => {
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 flex justify-end">
                 <button
                   type="submit"
                   className="px-6 py-2 rounded-lg bg-primary text-white hover:bg-opacity-90"
@@ -270,6 +270,7 @@ const AddEmployee = () => {
                   Submit
                 </button>
               </div>
+
             </div>
           </div>
         </div>
