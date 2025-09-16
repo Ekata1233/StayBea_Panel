@@ -75,7 +75,7 @@ const EmployeeRolePage = () => {
       <form onSubmit={handleSubmit} className="flex flex-col gap-9">
 
         {/* Role Name Section */}
-        <div className="w-full rounded border-[1.5px] border-stroke bg-transparent dark:border-form-strokedark dark:bg-form-input">
+        <div className="w-full rounded border-[1.5px] border-stroke bg-white dark:border-form-strokedark dark:bg-form-input">
           <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
             <h3 className="font-medium text-black dark:text-white">Role Name</h3>
           </div>
@@ -95,7 +95,7 @@ const EmployeeRolePage = () => {
         </div>
 
         {/* Permissions Section */}
-        <div className="w-full rounded border-[1.5px] border-stroke bg-transparent dark:border-form-strokedark dark:bg-form-input">
+        <div className="w-full rounded border-[1.5px] border-stroke bg-white dark:border-form-strokedark dark:bg-form-input">
           <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark flex justify-between items-center">
             <h3 className="font-medium text-black dark:text-white">Permissions / Accesses</h3>
             <label className="flex items-center gap-2 text-sm">
@@ -129,7 +129,7 @@ const EmployeeRolePage = () => {
         </div>
 
         {/* Manage Access Section */}
-        <div className="w-full rounded border-[1.5px] border-stroke bg-transparent dark:border-form-strokedark dark:bg-form-input">
+        <div className="w-full rounded border-[1.5px] border-stroke bg-white dark:border-form-strokedark dark:bg-form-input">
           <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
             <h3 className="font-medium text-black dark:text-white">Manage Access</h3>
           </div>
