@@ -1,4 +1,5 @@
 import { z } from "zod";
+const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 export const employeeSchema = z.object({
   firstName: z
@@ -16,8 +17,11 @@ export const employeeSchema = z.object({
   address: z.string().max(200, "Address is too long").optional(),
   image: z.string().url("Invalid image URL").optional(),
 
-  role: z.string().optional(),
-
+  role: z
+    .string()
+    .regex(objectIdRegex, "Invalid role ID")
+    .nonempty("Role is required"),
+    
   identityType: z.enum(["aadhar", "pan", "passport"]).optional(),
   identityNumber: z
     .string()

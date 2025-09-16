@@ -356,7 +356,11 @@ const menuGroups = [
           </svg>
         ),
         label: "Employee Role",
-        route: "/admin/employee-management/employee-role",
+        route: "#",
+        children: [
+          { label: "Add Role", route: "/admin/employee-management/employee-role/add-role" },
+          { label: "Role-list", route: "/admin/employee-management/employee-role/role-list" },
+        ],
       },
       {
         icon: (

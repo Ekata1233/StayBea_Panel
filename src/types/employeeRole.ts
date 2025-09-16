@@ -1,4 +1,5 @@
 export interface IEmployeeRole extends Document {
+  _id: string;
   roleName: string;
   permissions: string[];
   manageAccess: {
@@ -9,3 +10,4 @@ export interface IEmployeeRole extends Document {
     Export: boolean;
   };
 }
+

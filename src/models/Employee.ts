@@ -8,13 +8,11 @@ const employeeSchema = new Schema<IEmployee>(
     phone: { type: String, required: true, trim: true },
     address: { type: String, trim: true },
     image: { type: String }, // store uploaded image URL or path
-
-    role: { 
-      type: String, 
-      enum: ["admin", "manager", "staff"], 
+     role: { 
+      type: Schema.Types.ObjectId, 
+      ref: "EmployeeRole", 
       required: true 
     },
-
     identityType: { 
       type: String, 
       enum: ["aadhar", "pan", "passport"], 

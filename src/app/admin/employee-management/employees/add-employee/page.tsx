@@ -2,12 +2,20 @@
 
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import { useEmployeeRoleContext } from "@/context/EmployeeRoleContext";
 import { ChevronDownIcon } from "lucide-react";
 import React, { useState } from "react";
 
 const AddEmployee = () => {
   const [selectedRole, setSelectedRole] = useState("");
   const [identityType, setIdentityType] = useState("");
+  const { employeeRoles, employeeRoleLoading, employeeRoleError } =
+    useEmployeeRoleContext();
+
+  console.log("employeeRoles", employeeRoles)
+
+  if (employeeRoleLoading) return <p>Loading...</p>;
+  if (employeeRoleError) return <p>Error: {employeeRoleError}</p>;
 
   const roleOptions = [
     { value: "admin", label: "Admin" },
@@ -123,13 +131,13 @@ const AddEmployee = () => {
                       value={selectedRole}
                       onChange={(e) => setSelectedRole(e.target.value)}
                       className="w-full appearance-none rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 
-                    text-black outline-none transition focus:border-primary active:border-primary 
-                    dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        text-black outline-none transition focus:border-primary active:border-primary 
+        dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     >
                       <option value="">Select a role</option>
-                      {roleOptions.map((role) => (
-                        <option key={role.value} value={role.value}>
-                          {role.label}
+                      {employeeRoles.map((role) => (
+                        <option key={role._id} value={role._id}>
+                          {role.roleName}
                         </option>
                       ))}
                     </select>
@@ -138,6 +146,7 @@ const AddEmployee = () => {
                     </span>
                   </div>
                 </div>
+
               </div>
             </div>
           </div>

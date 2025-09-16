@@ -5,9 +5,7 @@ import mongoose, { Schema, Document } from "mongoose";
 const employeeRoleSchema = new Schema<IEmployeeRole>(
   {
     roleName: { type: String, required: true, unique: true, trim: true },
-
     permissions: [{ type: String }],
-
     manageAccess: {
       Add: { type: Boolean, default: true },
       Update: { type: Boolean, default: true },
