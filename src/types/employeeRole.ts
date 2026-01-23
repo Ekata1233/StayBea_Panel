@@ -9,5 +9,6 @@ export interface IEmployeeRole extends Document {
     View: boolean;
     Export: boolean;
   };
+  createdAt: Date;
 }
 
