@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const existingRole = await EmployeeRoleModel.findOne({ roleName: parsedData.roleName });
     if (existingRole) {
       return NextResponse.json(
-        { success: false, message: "Role name already exists" },
+        { success: false, message: "Role name already exists ❌." },
         { status: 400, headers: corsHeaders }
       );
     }

@@ -60,14 +60,14 @@ export const EmployeeRoleProvider = ({ children }: { children: ReactNode }) => {
 
       const data = await res.json();
 
-      if (data.success) {
-        // refresh after adding
-        await fetchEmployeeRoles();
-      } else {
-        setEmployeeRoleError(data.message || "Failed to add employee role.");
-      }
+      if (!res.ok || data.success === false) {
+      throw new Error(data.message || "Failed to add employee role");
+    }
+    await fetchEmployeeRoles();
+    return;
     } catch (error: any) {
       setEmployeeRoleError(error.message || "Failed to add employee role.");
+      throw error;
     } finally {
       setEmployeeRoleLoading(false);
     }

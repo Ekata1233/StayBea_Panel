@@ -1,5 +1,6 @@
 "use client";
 
+import Alert from "@/components/Alert/GenericAlert";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { useEmployeeRoleContext } from "@/context/EmployeeRoleContext";
@@ -11,6 +12,11 @@ const EmployeeRolePage = () => {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const { addEmployeeRole, employeeRoleLoading } = useEmployeeRoleContext();
+  const [alert, setAlert] = useState<{
+  type: "success" | "error";
+  message: string;
+} | null>(null);
+
 
   // ✅ Permission groups
   const permissionGroups = [
@@ -95,24 +101,52 @@ const EmployeeRolePage = () => {
     setSelectAll(false);
   };
 
-  // ✅ Submit form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const newRole: Omit<IEmployeeRole, "_id"> = {
-      roleName,
-      permissions: selectedPermissions,
-      manageAccess,
-    };
+  const newRole: Omit<IEmployeeRole, "_id"> = {
+    roleName,
+    permissions: selectedPermissions,
+    manageAccess,
+  };
 
+  try {
     await addEmployeeRole(newRole);
 
+    // ✅ success alert
+    setAlert({
+      type: "success",
+      message: "Employee role created successfully 🎉",
+    });
+
+     window.scrollTo({ top: 0, behavior: "smooth" });
+
     handleReset();
-  };
+  } catch (error) {
+    setAlert({
+    type: "error",
+    message:
+      error instanceof Error
+        ? error.message
+        : "Failed to create employee role.",
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  setTimeout(() => setAlert(null), 3000);
+};
+
 
   return (
     <DefaultLayout>
       <Breadcrumb pageName="Create New Role" />
+{alert && (
+  <Alert
+    type={alert.type}
+    message={alert.message}
+    onClose={() => setAlert(null)}
+  />
+)}
+
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-9">
         {/* Role Name Section */}
