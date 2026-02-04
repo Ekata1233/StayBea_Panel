@@ -6,6 +6,7 @@ import "@/css/style.css";
 import React, { useEffect, useState } from "react";
 import Loader from "@/components/common/Loader";
 import { EmployeeRoleProvider } from "@/context/EmployeeRoleContext";
+import { EmployeeProvider } from "@/context/EmployeeContext";
 
 export default function RootLayout({
   children,
@@ -26,7 +27,9 @@ export default function RootLayout({
       <body suppressHydrationWarning={true}>
         <div className="dark:bg-boxdark-2 dark:text-bodydark">
           <EmployeeRoleProvider>
-            {loading ? <Loader /> : children}
+            <EmployeeProvider>
+              {loading ? <Loader /> : children}
+            </EmployeeProvider>
           </EmployeeRoleProvider>
         </div>
       </body>
