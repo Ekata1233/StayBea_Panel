@@ -68,6 +68,8 @@ export async function POST(req: NextRequest) {
       {
         userId: employee._id,
         role: employee.role?.roleName,
+        permissions: employee.role?.permissions,
+        manageAccess: employee.role.manageAccess,
       },
       process.env.JWT_SECRET!,
       { expiresIn: "24h" }

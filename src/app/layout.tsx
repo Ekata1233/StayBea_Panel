@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import Loader from "@/components/common/Loader";
 import { EmployeeRoleProvider } from "@/context/EmployeeRoleContext";
 import { EmployeeProvider } from "@/context/EmployeeContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function RootLayout({
   children,
@@ -28,7 +29,9 @@ export default function RootLayout({
         <div className="dark:bg-boxdark-2 dark:text-bodydark">
           <EmployeeRoleProvider>
             <EmployeeProvider>
+              <AuthProvider>
               {loading ? <Loader /> : children}
+              </AuthProvider>
             </EmployeeProvider>
           </EmployeeRoleProvider>
         </div>
