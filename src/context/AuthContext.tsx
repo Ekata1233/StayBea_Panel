@@ -19,6 +19,7 @@ type AuthContextType = {
   user: AuthUser | null;
   loading: boolean;
   logout: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -38,30 +39,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     window.location.href = "/login";
   };
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("/api/employee/auth/details", {
-          credentials: "include",
-        });
+const fetchUser = async () => {
+  try {
+    const res = await fetch("/api/employee/auth/details", {
+      credentials: "include",
+      cache: "no-store", // 🔥 VERY IMPORTANT
+    });
 
-        if (!res.ok) throw new Error("Unauthorized");
+    if (!res.ok) throw new Error("Unauthorized");
 
-        const data = await res.json();
+    const data = await res.json();
+    setUser(data.user);
+  } catch {
+    setUser(null);
+  }
+};
 
-        setUser(data.user);
-      } catch {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+useEffect(() => {
+  fetchUser().finally(() => setLoading(false));
+}, []);
 
-    fetchUser();
-  }, []);
+const refreshAuth = async () => {
+  setLoading(true);
+  await fetchUser();
+  setLoading(false);
+};
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, logout, refreshAuth  }}>
       {children}
     </AuthContext.Provider>
   );
