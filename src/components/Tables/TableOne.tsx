@@ -1,6 +1,7 @@
 import { BRAND } from "@/types/brand";
 import Image from "next/image";
 import { Pencil, Trash2, Eye } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const brandData: (BRAND & {
   region: string;
@@ -76,6 +77,9 @@ const brandData: (BRAND & {
 ];
 
 const TableOne = () => {
+      const { user, loading } = useAuth();
+      
+    if (loading) return null;
   return (
     <div className="rounded-lg border border-stroke bg-white px-5 pb-4 pt-6 shadow-md dark:border-strokedark dark:bg-boxdark sm:px-7.5">
       <h4 className="mb-6 text-xl font-semibold text-black dark:text-white">
@@ -196,12 +200,14 @@ const TableOne = () => {
                 >
                   <Eye size={18} />
                 </button>
+                {user?.manageAccess.Update &&
                 <button 
                   className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 transition"
                   title="Edit"
                 >
                   <Pencil size={18} />
                 </button>
+                }
                 <button 
                   className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 transition"
                   title="Delete"

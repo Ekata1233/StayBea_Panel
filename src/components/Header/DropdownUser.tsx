@@ -3,26 +3,28 @@ import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
+  const { user, loading } = useAuth();
 
-const handleLogout = async () => {
-  try {
-    await fetch("/api/employee/auth/logout", {
-      method: "POST",
-      credentials: "include", // 🔑 send auth cookie
-    });
+  if (loading) return null;
 
-    // after logout, redirect to login
-    router.push("/admin/login");
-  } catch (error) {
-    console.error("Logout failed", error);
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/employee/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
-
+      // after logout, redirect to login
+      router.push("/admin/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
@@ -33,7 +35,7 @@ const handleLogout = async () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            Stay Bea
+            {user?.role}
           </span>
           <span className="block text-xs">Datting App</span>
         </span>
@@ -146,7 +148,10 @@ const handleLogout = async () => {
               </Link>
             </li>
           </ul>
-          <button onClick={handleLogout} className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+          >
             <svg
               className="fill-current"
               width="22"
