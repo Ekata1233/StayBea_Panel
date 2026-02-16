@@ -139,7 +139,7 @@ const TableOne = () => {
 
               {/* Status */}
               <div className="text-center p-3 w-[100px]">
-                <span
+                <span  
                   className={`px-3 py-1 rounded-full text-xs font-medium ${
                     brand.status === "Active"
                       ? "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300"
