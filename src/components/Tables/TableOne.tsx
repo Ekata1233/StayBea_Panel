@@ -1,3 +1,4 @@
+"use client"; 
 import { BRAND } from "@/types/brand";
 import Image from "next/image";
 import { Pencil, Trash2, Eye } from "lucide-react";

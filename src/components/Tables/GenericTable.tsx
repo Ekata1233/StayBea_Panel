@@ -89,7 +89,7 @@
 // }
 
 // export default GenericTable;
-
+"use client";
 import React, { useState } from "react";
 import Image from "next/image";
 import { Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
@@ -118,8 +118,9 @@ export interface TableProps<T> {
 }
 
 const GenericTable = <T extends Record<string, any>>({
-  data,
-  columns,
+  data = [],
+
+ columns = [],
   title = "Data Table",
   pageSize = 5,
   showPagination = true,
