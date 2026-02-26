@@ -13,7 +13,7 @@ import GenericTable from "@/components/ui/GenericTable";
 import { Loader2, X, Plus } from "lucide-react";
 
 function Page() {
-  const { createData, data, deleteData, loading } = useSexualOrientation();
+  const { createData, data, deleteData } = useSexualOrientation();
 
   /* ================= FORM STATE ================= */
   const [title, setTitle] = useState("");
@@ -101,7 +101,7 @@ function Page() {
     setIsDeleting("all");
 
     try {
-      await deleteData("all");
+      await deleteData();
       toast.success("All sexual orientations deleted successfully!");
     } catch (error: any) {
       toast.error(error.message || "Failed to delete");
@@ -154,7 +154,7 @@ function Page() {
               {chunk.map((opt: any, optIndex: number) => (
                 <span
                   key={optIndex}
-                  className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap"
+                  className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap"
                 >
                   {opt.label}
                 </span>
@@ -212,7 +212,7 @@ function Page() {
               <button
                 type="button"
                 onClick={addOptionFromButton}
-                className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-1 text-sm disabled:opacity-50"
+                className="h-[47px] px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition flex items-center justify-center gap-1 text-sm disabled:opacity-50"
                 disabled={isSubmitting || !optionInput.trim()}
               >
                 <Plus size={16} />
@@ -234,7 +234,7 @@ function Page() {
                 {options.map((opt, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded-full text-xs"
+                    className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 px-2 py-1 rounded-full text-xs"
                   >
                     {opt.length > 15 ? opt.substring(0, 15) + "..." : opt}
                     <button
@@ -278,9 +278,9 @@ function Page() {
             isDeleting={isDeleting}
           />
 
-          {loading && !data.length && (
+          { !data.length && (
             <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
             </div>
           )}
         </div>

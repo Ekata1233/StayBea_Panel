@@ -263,7 +263,7 @@ function Page() {
       width: "120px",
       align: "left" as const,
       render: (row: any) => (
-        <span className="font-medium text-pink-600 dark:text-pink-400">
+        <span className="font-medium text-purple-600 dark:text-purple-400">
           {row.subtitle}
         </span>
       ),
@@ -280,7 +280,7 @@ function Page() {
               {chunk.map((point: any, pointIndex: number) => (
                 <span
                   key={pointIndex}
-                  className="bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300 px-2 py-0.5 rounded-full text-xs whitespace-nowrap"
+                  className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 px-2 py-0.5 rounded-full text-xs whitespace-nowrap"
                   title={point.label}
                 >
                   {point.label.length > 20 ? point.label.substring(0, 20) + "..." : point.label}
@@ -416,7 +416,7 @@ function Page() {
                         <button
                           type="button"
                           onClick={() => addPointFromButton(sectionIndex)}
-                          className="px-3 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition flex items-center justify-center gap-1 text-sm disabled:opacity-50"
+                           className="h-[47px] px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition flex items-center justify-center gap-1 text-sm disabled:opacity-50"
                           disabled={isSubmitting || !section.pointInput.trim()}
                         >
                           <Plus size={16} />
@@ -435,7 +435,7 @@ function Page() {
                           {section.points.map((point, pointIndex) => (
                             <span
                               key={pointIndex}
-                              className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300 px-2 py-0.5 rounded-full text-xs"
+                              className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 px-2 py-0.5 rounded-full text-xs"
                               title={point}
                             >
                               {point.length > 25 ? point.substring(0, 25) + "..." : point}
@@ -460,7 +460,7 @@ function Page() {
             <button
               type="button"
               onClick={addSection}
-              className="flex items-center gap-2 text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 mt-2"
+              className="flex items-center gap-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 mt-2"
               disabled={isSubmitting}
             >
               <Plus size={18} />
@@ -498,7 +498,7 @@ function Page() {
 
           {loading && !data && (
             <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-pink-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
             </div>
           )}
         </div>
