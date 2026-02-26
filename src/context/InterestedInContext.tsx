@@ -26,6 +26,8 @@ interface InterestedInContextType {
   error: string | null;
   fetchData: () => Promise<void>;
   createData: (formData: FormData) => Promise<void>;
+   deleteData: (id: string) => Promise<void>;
+  
 }
 
 const InterestedInContext = createContext<
@@ -75,14 +77,32 @@ export const InterestedInProvider = ({
       setLoading(false);
     }
   };
+  // ✅ DELETE
+  const deleteData = async (id: string) => {
+    try {
+      setLoading(true);
 
+      await axios.delete(`${API_URL}/delete/${id}`);
+
+      // remove from state instantly (optional optimization)
+      setData((prev) => prev.filter((item) => item._id !== id));
+
+      // OR refresh from backend
+      // await fetchData();
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     fetchData();
   }, []);
 
   return (
     <InterestedInContext.Provider
-      value={{ data, loading, error, fetchData, createData }}
+      value={{ data, loading, error, fetchData, createData,deleteData }}
     >
       {children}
     </InterestedInContext.Provider>

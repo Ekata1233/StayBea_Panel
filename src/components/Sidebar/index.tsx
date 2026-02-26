@@ -91,7 +91,7 @@ const menuGroups = [
         label: "Profile",
         route: "/profile",
       },
-       {
+      {
         icon: (
           <svg
             className="fill-current"
@@ -127,7 +127,23 @@ const menuGroups = [
         route: "#",
         children: [
           { label: "Interested In", route: "/Onboarding/Interested-In" },
-          { label: "Form Layout", route: "/forms/form-layout" },
+          {
+            label: "Sexual Orientation",
+            route: "/Onboarding/Sexual-Orientation",
+          },
+          {
+            label: "Lifestyle",
+            route: "/Onboarding/Lifestyle",
+          },
+           {
+            label: "Real-U-Matters",
+            route: "/Onboarding/Real-U-Matters",
+          },
+           {
+            label: "Things-U-Love",
+            route: "/Onboarding/Things-U-Love",
+          },
+         
         ],
       },
       {
@@ -397,8 +413,14 @@ const menuGroups = [
         label: "Employee Role",
         route: "#",
         children: [
-          { label: "Add Role", route: "/admin/employee-management/employee-role/add-role" },
-          { label: "Role-list", route: "/admin/employee-management/employee-role/role-list" },
+          {
+            label: "Add Role",
+            route: "/admin/employee-management/employee-role/add-role",
+          },
+          {
+            label: "Role-list",
+            route: "/admin/employee-management/employee-role/role-list",
+          },
         ],
       },
       {
@@ -440,11 +462,16 @@ const menuGroups = [
         label: "Employees",
         route: "#",
         children: [
-          { label: "Add Employee", route: "/admin/employee-management/employees/add-employee" },
-          { label: "Employee-list", route: "/admin/employee-management/employees/employee-list" },
+          {
+            label: "Add Employee",
+            route: "/admin/employee-management/employees/add-employee",
+          },
+          {
+            label: "Employee-list",
+            route: "/admin/employee-management/employees/employee-list",
+          },
         ],
       },
-    
     ],
   },
 ];

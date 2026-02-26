@@ -9,6 +9,10 @@ import { EmployeeRoleProvider } from "@/context/EmployeeRoleContext";
 import { EmployeeProvider } from "@/context/EmployeeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { InterestedInProvider } from "@/context/InterestedInContext";
+import { SexualOrientationProvider } from "@/context/SexualOrientationContext";
+import { LifestyleProvider } from "@/context/LifestyleContext";
+import { RealYouMattersProvider } from "@/context/RealYouMattersContext";
+import { ThingsYouLoveProvider } from "@/context/ThingsYouLoveContext";
 
 export default function RootLayout({
   children,
@@ -32,8 +36,16 @@ export default function RootLayout({
             <EmployeeProvider>
               <AuthProvider>
                 <InterestedInProvider>
-              {loading ? <Loader /> : children}
-              </InterestedInProvider>
+                  <SexualOrientationProvider>
+                    <LifestyleProvider>
+                      <RealYouMattersProvider>
+                        <ThingsYouLoveProvider>
+                      {loading ? <Loader /> : children}
+                      </ThingsYouLoveProvider>
+                      </RealYouMattersProvider>
+                    </LifestyleProvider>
+                  </SexualOrientationProvider>
+                </InterestedInProvider>
               </AuthProvider>
             </EmployeeProvider>
           </EmployeeRoleProvider>

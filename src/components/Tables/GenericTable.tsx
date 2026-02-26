@@ -115,6 +115,7 @@ export interface TableProps<T> {
   showActions?: boolean;
   actionsColumnTitle?: string;
   className?: string;
+  
 }
 
 const GenericTable = <T extends Record<string, any>>({
