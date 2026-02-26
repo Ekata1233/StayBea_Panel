@@ -395,7 +395,7 @@ function Page() {
                     {/* Points Input */}
                     <div className="mb-3">
                       <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">
-                        Add Points
+                        Add Points  
                       </label>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <div className="flex-1">
@@ -414,7 +414,7 @@ function Page() {
                         <button
                           type="button"
                           onClick={() => addPointFromButton(sectionIndex)}
-                          className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center justify-center gap-1 text-sm disabled:opacity-50"
+                         className="h-[47px] px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition flex items-center justify-center gap-1 text-sm disabled:opacity-50"
                           disabled={isSubmitting || !section.pointInput.trim()}
                         >
                           <Plus size={16} />

@@ -154,7 +154,7 @@ function Page() {
                     
                     {/* Gender Column */}
                     <td className="p-3">
-                      <span className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm">
+                      <span className="bg-purple-200 dark:bg-purple-700 px-3 py-1 rounded-full text-sm">
                         {gi.gender}
                       </span>
                     </td>
@@ -167,9 +167,9 @@ function Page() {
                           alt={gi.gender}
                           className="w-[50px] h-[50px] rounded-md object-cover border border-gray-200 dark:border-gray-700"
                         />
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {/* <span className="text-xs text-gray-500 dark:text-gray-400">
                           {gi.image.split('/').pop()?.substring(0, 20)}...
-                        </span>
+                        </span> */}
                       </div>
                     </td>
                     
@@ -292,7 +292,7 @@ function Page() {
           <button
             type="button"
             onClick={addRow}
-            className="bg-green-600 text-white px-4 py-2 rounded-md mb-4 hover:bg-green-700 text-sm"
+            className="h-[47px] px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition flex items-center justify-center gap-1 text-sm disabled:opacity-50 mb-4"
             disabled={isSubmitting}
           >
             + Add More
