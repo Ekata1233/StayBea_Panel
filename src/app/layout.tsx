@@ -13,6 +13,8 @@ import { SexualOrientationProvider } from "@/context/SexualOrientationContext";
 import { LifestyleProvider } from "@/context/LifestyleContext";
 import { RealYouMattersProvider } from "@/context/RealYouMattersContext";
 import { ThingsYouLoveProvider } from "@/context/ThingsYouLoveContext";
+import { LookingForProvider } from "@/context/LookingForContext";
+import { GenderProvider } from "@/context/GenderContext";
 
 export default function RootLayout({
   children,
@@ -40,8 +42,12 @@ export default function RootLayout({
                     <LifestyleProvider>
                       <RealYouMattersProvider>
                         <ThingsYouLoveProvider>
-                      {loading ? <Loader /> : children}
-                      </ThingsYouLoveProvider>
+                          <LookingForProvider>
+                            <GenderProvider>
+                            {loading ? <Loader /> : children}
+                            </GenderProvider>
+                          </LookingForProvider>
+                        </ThingsYouLoveProvider>
                       </RealYouMattersProvider>
                     </LifestyleProvider>
                   </SexualOrientationProvider>
