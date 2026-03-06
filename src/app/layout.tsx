@@ -8,6 +8,7 @@ import Loader from "@/components/common/Loader";
 import { EmployeeRoleProvider } from "@/context/EmployeeRoleContext";
 import { EmployeeProvider } from "@/context/EmployeeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { UserProvider } from "@/context/UserContext";
 
 export default function RootLayout({
   children,
@@ -30,7 +31,7 @@ export default function RootLayout({
           <EmployeeRoleProvider>
             <EmployeeProvider>
               <AuthProvider>
-              {loading ? <Loader /> : children}
+                <UserProvider>{loading ? <Loader /> : children}</UserProvider>
               </AuthProvider>
             </EmployeeProvider>
           </EmployeeRoleProvider>
