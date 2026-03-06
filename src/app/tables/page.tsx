@@ -5,6 +5,7 @@ import TableTwo from "@/components/Tables/TableTwo";
 
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import GenericTable from "@/components/Tables/GenericTable";
 
 export const metadata: Metadata = {
   title: "Next.js Tables | TailAdmin - Next.js Dashboard Template",
@@ -18,7 +19,9 @@ const TablesPage = () => {
       <Breadcrumb pageName="Tables" />
 
       <div className="flex flex-col gap-10">
+         <GenericTable/>
         <TableOne />
+       
         <TableTwo />
         <TableThree />
       </div>

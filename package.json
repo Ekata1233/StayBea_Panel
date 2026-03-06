@@ -1,5 +1,5 @@
 {
-  "name": "free-nextjs-admin-dashboard",
+  "name": "Stay_Bea_Admin_Panel",
   "version": "1.3.5",
   "private": true,
   "scripts": {
@@ -21,6 +21,7 @@
     "react": "^18",
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18",
+    "react-toastify": "^11.0.5",
     "zod": "^4.1.7"
   },
   "devDependencies": {

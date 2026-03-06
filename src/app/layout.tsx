@@ -8,6 +8,13 @@ import Loader from "@/components/common/Loader";
 import { EmployeeRoleProvider } from "@/context/EmployeeRoleContext";
 import { EmployeeProvider } from "@/context/EmployeeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { InterestedInProvider } from "@/context/InterestedInContext";
+import { SexualOrientationProvider } from "@/context/SexualOrientationContext";
+import { LifestyleProvider } from "@/context/LifestyleContext";
+import { RealYouMattersProvider } from "@/context/RealYouMattersContext";
+import { ThingsYouLoveProvider } from "@/context/ThingsYouLoveContext";
+import { LookingForProvider } from "@/context/LookingForContext";
+import { GenderProvider } from "@/context/GenderContext";
 import { UserProvider } from "@/context/UserContext";
 
 export default function RootLayout({
@@ -31,7 +38,23 @@ export default function RootLayout({
           <EmployeeRoleProvider>
             <EmployeeProvider>
               <AuthProvider>
-                <UserProvider>{loading ? <Loader /> : children}</UserProvider>
+                <InterestedInProvider>
+                  <SexualOrientationProvider>
+                    <LifestyleProvider>
+                      <RealYouMattersProvider>
+                        <ThingsYouLoveProvider>
+                          <LookingForProvider>
+                            <GenderProvider>
+                              <UserProvider>
+                                {loading ? <Loader /> : children}
+                              </UserProvider>
+                            </GenderProvider>
+                          </LookingForProvider>
+                        </ThingsYouLoveProvider>
+                      </RealYouMattersProvider>
+                    </LifestyleProvider>
+                  </SexualOrientationProvider>
+                </InterestedInProvider>
               </AuthProvider>
             </EmployeeProvider>
           </EmployeeRoleProvider>
