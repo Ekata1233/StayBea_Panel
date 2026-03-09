@@ -6,12 +6,11 @@ import Loader from "@/components/common/Loader";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import GenericTable from "@/components/ui/GenericTable";
 import { useUserContext } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 const Page = () => {
   const { user, userLoading, userError } = useUserContext();
-
-  if (userLoading) return <Loader />;
-  if (userError) return <p>{userError}</p>;
+  const router = useRouter();
 
   // ================= TABLE COLUMNS =================
   const columns = [
@@ -30,7 +29,7 @@ const Page = () => {
       accessor: "email",
       align: "left" as const,
       render: (row: any) => (
-        <span className="text-gray-700 dark:text-gray-300">
+        <span className="block max-w-[200px] truncate text-gray-700 dark:text-gray-300">
           {row.email || "-"}
         </span>
       ),
@@ -51,7 +50,7 @@ const Page = () => {
       align: "center" as const,
       render: (row: any) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
+          className={`rounded px-2 py-1 text-xs font-medium ${
             row.is_phone_verified
               ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
               : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
@@ -67,7 +66,7 @@ const Page = () => {
       align: "center" as const,
       render: (row: any) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
+          className={`rounded px-2 py-1 text-xs font-medium ${
             row.onboarding_completed
               ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
               : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
@@ -78,7 +77,7 @@ const Page = () => {
       ),
     },
     {
-      header: "Created At",
+      header: "Register Date",
       accessor: "created_at",
       align: "left" as const,
       render: (row: any) => (
@@ -94,6 +93,13 @@ const Page = () => {
     return user || [];
   }, [user]);
 
+  const handleViewUser = (row: any) => {
+  router.push(`/admin/user-management/user-list/${row.id}`);
+};
+
+  if (userLoading) return <Loader />;
+  if (userError) return <p>{userError}</p>;
+
   return (
     <DefaultLayout>
       <Breadcrumb pageName="User List" />
@@ -103,10 +109,11 @@ const Page = () => {
           title="Users"
           columns={columns}
           data={formattedData}
-          showActions={false}
-          showView={false}
+          showActions={true}
+          showView={true}
           showEdit={false}
           showDelete={false}
+          onView={handleViewUser}
           minWidth="1000px"
           isDeleting={null}
         />

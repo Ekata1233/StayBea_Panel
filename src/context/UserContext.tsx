@@ -31,7 +31,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setUserError(null);
     try {
       const res = await fetch(`https://dating-app-backend-plum.vercel.app/api/user/get-all`);
+      console.log("Fetch User Response:", res);
       const data = await res.json();
+
+
 
       if (data.success && Array.isArray(data.data)) {
         setUser(data.data);
