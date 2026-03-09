@@ -1,14 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
+interface IEmployeeDetails {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  image?: string;
+  role: string;
+  isActive: boolean;
+}
+
+
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
   const { user, loading } = useAuth();
+
+  const [details, setDetails] = useState<IEmployeeDetails | null>(null);
+
+  // load employee details when user id available
+  useEffect(() => {
+    if (!user?.userId) return;
+    fetch(`/api/employee/details/${user.userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) setDetails(data.data);
+      })
+      .catch((err) => console.error("Failed to load employee details", err));
+  }, [user]);
+
+  console.log("details:", details);
 
   if (loading) return null;
 
@@ -37,7 +65,11 @@ const DropdownUser = () => {
           <span className="block text-sm font-medium text-black dark:text-white">
             {user?.role}
           </span>
-          <span className="block text-xs">Datting App</span>
+          <span className="block text-xs">
+            {details
+              ? `${details.firstName} ${details.lastName}`
+              : "Loading..."}
+          </span>
         </span>
 
         <span className="h-12 w-12 rounded-full">

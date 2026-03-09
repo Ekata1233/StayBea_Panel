@@ -14,7 +14,6 @@ const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), { ssr
 
 const ECommerce: React.FC = () => {
   const { user, loading } = useAuth();
-  console.log("user : ", user);
   
 if (loading) return null;
 
