@@ -12,7 +12,6 @@ const UserDetails = () => {
     const { id } = useParams();
 
   const [user, setUser] = useState<IUser | null>(null);
-  console.log("User Details:", user);
 
   useEffect(() => {
     const fetchUser = async () => {

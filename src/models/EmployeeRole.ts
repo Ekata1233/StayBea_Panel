@@ -1,17 +1,31 @@
 import { IEmployeeRole } from "@/types/employeeRole";
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
+const permissionSchema = new Schema(
+  {
+    All: { type: Boolean, default: false },
+    Add: { type: Boolean, default: false },
+    View: { type: Boolean, default: false },
+    Update: { type: Boolean, default: false },
+    Delete: { type: Boolean, default: false },
+    Export: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
 
 const employeeRoleSchema = new Schema<IEmployeeRole>(
   {
-    roleName: { type: String, required: true, unique: true, trim: true },
-    permissions: [{ type: String }],
-    manageAccess: {
-      Add: { type: Boolean, default: true },
-      Update: { type: Boolean, default: true },
-      Delete: { type: Boolean, default: true },
-      View: { type: Boolean, default: true },
-      Export: { type: Boolean, default: true },
+    roleName: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+
+    permissions: {
+      type: Map,
+      of: permissionSchema,
+      default: {},
     },
   },
   { timestamps: true }

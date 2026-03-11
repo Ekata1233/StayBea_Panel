@@ -1,12 +1,22 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+type PermissionActions = {
+  All?: boolean;
+  Add?: boolean;
+  View?: boolean;
+  Update?: boolean;
+  Delete?: boolean;
+  Export?: boolean;
+};
 
+type Permissions = Record<string, PermissionActions>;
 type AuthUser = {
   userId: string;
   role: string;
-  permissions: string[];
+  permissions: Permissions;
   manageAccess: {
+    All: boolean;
     Add: boolean;
     Update: boolean;
     Delete: boolean;

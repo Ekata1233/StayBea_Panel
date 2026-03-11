@@ -36,8 +36,6 @@ const DropdownUser = () => {
       .catch((err) => console.error("Failed to load employee details", err));
   }, [user]);
 
-  console.log("details:", details);
-
   if (loading) return null;
 
   const handleLogout = async () => {

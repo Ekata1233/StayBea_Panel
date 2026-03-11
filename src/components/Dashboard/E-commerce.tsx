@@ -17,7 +17,7 @@ const ECommerce: React.FC = () => {
   
 if (loading) return null;
 
-if (!user?.permissions.includes("Dashboard")) {
+if (!user?.permissions?.dashboard?.View) {
   return <AccessDenied />;
 }
 

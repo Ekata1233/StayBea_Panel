@@ -38,7 +38,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
     setEmployeeError(null);
 
     try {
-      const res = await fetch("/api/employee");
+      const res = await fetch("/api/employee/auth/register");
       const data = await res.json();
 
       if (res.ok && data.success && Array.isArray(data.data)) {
@@ -64,7 +64,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
       setEmployeeLoading(true);
       setEmployeeError(null);
 
-      const res = await fetch("/api/employee", {
+      const res = await fetch("/api/employee/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(employee),

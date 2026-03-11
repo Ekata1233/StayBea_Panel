@@ -113,7 +113,7 @@ const GenericTable = ({
                   )}
 
                   {/* EDIT - Only if enabled and user has permission */}
-                  {showEdit && user?.manageAccess?.Update && (
+                  {showEdit && (
                     <button
                       onClick={() => onEdit?.(row)}
                       className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 transition"

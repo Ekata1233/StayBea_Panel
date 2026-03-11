@@ -17,12 +17,6 @@ const AddEmployee = () => {
   if (employeeRoleLoading) return <p>Loading...</p>;
   if (employeeRoleError) return <p>Error: {employeeRoleError}</p>;
 
-  const roleOptions = [
-    { value: "admin", label: "Admin" },
-    { value: "manager", label: "Manager" },
-    { value: "staff", label: "Staff" },
-  ];
-
   const identityOptions = [
     { value: "aadhar", label: "Aadhar" },
     { value: "pan", label: "PAN" },

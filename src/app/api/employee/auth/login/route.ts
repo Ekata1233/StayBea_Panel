@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { connectToDatabase } from "@/utils/db";
 import EmployeeModel from "@/models/Employee";
 import { loginSchema } from "@/validation/login";
-import '@/models/EmployeeRole'
+import "@/models/EmployeeRole";
 
 // CORS headers
 const corsHeaders = {
@@ -23,22 +23,23 @@ export async function OPTIONS() {
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
-
     const body = await req.json();
 
     // ✅ Validate input
     const { email, password } = loginSchema.parse(body);
+
 
     // ✅ Find user (email index recommended)
     const employee = await EmployeeModel.findOne({ email })
       .populate("role")
       .select("+password"); // make sure password is selectable
 
+
     // ❌ Generic error (security)
     if (!employee) {
       return NextResponse.json(
         { success: false, message: "Invalid credentials" },
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: corsHeaders },
       );
     }
 
@@ -46,20 +47,17 @@ export async function POST(req: NextRequest) {
     if (!employee.isActive) {
       return NextResponse.json(
         { success: false, message: "Account is inactive" },
-        { status: 403, headers: corsHeaders }
+        { status: 403, headers: corsHeaders },
       );
     }
 
     // ✅ Compare password
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      employee.password
-    );
+    const isPasswordValid = await bcrypt.compare(password, employee.password);
 
     if (!isPasswordValid) {
       return NextResponse.json(
         { success: false, message: "Invalid credentials" },
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: corsHeaders },
       );
     }
 
@@ -72,8 +70,9 @@ export async function POST(req: NextRequest) {
         manageAccess: employee.role.manageAccess,
       },
       process.env.JWT_SECRET!,
-      { expiresIn: "24h" }
+      { expiresIn: "24h" },
     );
+
 
     // ✅ Hide password before response
     employee.password = undefined as any;
@@ -87,7 +86,7 @@ export async function POST(req: NextRequest) {
           user: employee,
         },
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders },
     );
 
     response.cookies.set("auth_token", token, {
@@ -96,7 +95,9 @@ export async function POST(req: NextRequest) {
       sameSite: "strict",
       maxAge: 60 * 60 * 24, // 24 hours
       path: "/",
+      
     });
+
 
     return response;
   } catch (error: any) {
@@ -105,13 +106,13 @@ export async function POST(req: NextRequest) {
     if (error.name === "ZodError") {
       return NextResponse.json(
         { success: false, errors: error.errors },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
     return NextResponse.json(
       { success: false, message: "Something went wrong" },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders },
     );
   }
 }

@@ -201,14 +201,14 @@ const TableOne = () => {
                 >
                   <Eye size={18} />
                 </button>
-                {user?.manageAccess.Update &&
+               
                 <button 
                   className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 transition"
                   title="Edit"
                 >
                   <Pencil size={18} />
                 </button>
-                }
+               
                 <button 
                   className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 transition"
                   title="Delete"

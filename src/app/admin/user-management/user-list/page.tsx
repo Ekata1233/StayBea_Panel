@@ -7,10 +7,21 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import GenericTable from "@/components/ui/GenericTable";
 import { useUserContext } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import AccessDenied from "@/components/AccessDenied/AccessDenied";
 
 const Page = () => {
   const { user, userLoading, userError } = useUserContext();
+  const { user: authUser, loading } = useAuth();
   const router = useRouter();
+
+  console.log("Authenticated User:", authUser);
+
+  const canView = authUser?.permissions?.users?.View;
+  const canEdit = authUser?.permissions?.users?.Update;
+  const canDelete = authUser?.permissions?.users?.Delete;
+
+  console.log("User List Permissions:", { "canView": canView, "canEdit": canEdit, "canDelete": canDelete });
 
   // ================= TABLE COLUMNS =================
   const columns = [
@@ -94,10 +105,15 @@ const Page = () => {
   }, [user]);
 
   const handleViewUser = (row: any) => {
-  router.push(`/admin/user-management/user-list/${row.id}`);
-};
+    router.push(`/admin/user-management/user-list/${row.id}`);
+  };
+
+  if (!authUser?.permissions?.users?.View) {
+    return <AccessDenied />;
+  }
 
   if (userLoading) return <Loader />;
+  if (loading) return <Loader />;
   if (userError) return <p>{userError}</p>;
 
   return (
@@ -109,10 +125,10 @@ const Page = () => {
           title="Users"
           columns={columns}
           data={formattedData}
-          showActions={true}
-          showView={true}
-          showEdit={false}
-          showDelete={false}
+          showActions={canView || canEdit || canDelete}
+          showView={canView}
+          showEdit={canEdit}
+          showDelete={canDelete}
           onView={handleViewUser}
           minWidth="1000px"
           isDeleting={null}

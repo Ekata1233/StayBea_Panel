@@ -1,14 +1,23 @@
-export interface IEmployeeRole extends Document {
-  _id: string;
-  roleName: string;
-  permissions: string[];
-  manageAccess: {
-    Add: boolean;
-    Update: boolean;
-    Delete: boolean;
-    View: boolean;
-    Export: boolean;
-  };
-  createdAt: Date;
+import { Document, Types } from "mongoose";
+
+export interface PermissionActions {
+  All?: boolean;
+  Add?: boolean;
+  View?: boolean;
+  Update?: boolean;
+  Delete?: boolean;
+  Export?: boolean;
 }
 
+export interface IEmployeeRole extends Document {
+  _id: Types.ObjectId;
+
+  roleName: string;
+
+  permissions: {
+    [module: string]: PermissionActions;
+  };
+
+  createdAt: Date;
+  updatedAt: Date;
+}
