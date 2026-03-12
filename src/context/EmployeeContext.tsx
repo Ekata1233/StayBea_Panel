@@ -57,36 +57,42 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
   // ============================
   // Register Employee (RETURN DATA ✅)
   // ============================
-  const registerEmployee = async (
-    employee: Omit<IEmployee, "_id" | "createdAt" | "updatedAt">
-  ): Promise<IEmployee> => {
-    try {
-      setEmployeeLoading(true);
-      setEmployeeError(null);
+const registerEmployee = async (
+  employee: Omit<IEmployee, "_id" | "createdAt" | "updatedAt">
+): Promise<IEmployee> => {
+  try {
+    setEmployeeLoading(true);
+    setEmployeeError(null);
 
-      const res = await fetch("/api/employee/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(employee),
-      });
+    const formData = new FormData();
 
-      const data = await res.json();
-
-      if (!res.ok || data.success === false) {
-        throw new Error(data.message || "Failed to register employee");
+    Object.entries(employee).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value as any);
       }
+    });
 
-      // Update state optimistically
-      setEmployees((prev) => [data.data, ...prev]);
+    const res = await fetch("/api/employee/auth/register", {
+      method: "POST",
+      body: formData, // ❗ important
+    });
 
-      return data.data; // 🔥 RETURN DATA
-    } catch (error: any) {
-      setEmployeeError(error.message || "Failed to register employee");
-      throw error; // 🔥 THROW for UI handling
-    } finally {
-      setEmployeeLoading(false);
+    const data = await res.json();
+
+    if (!res.ok || data.success === false) {
+      throw new Error(data.message || "Failed to register employee");
     }
-  };
+
+    setEmployees((prev) => [data.data, ...prev]);
+
+    return data.data;
+  } catch (error: any) {
+    setEmployeeError(error.message || "Failed to register employee");
+    throw error;
+  } finally {
+    setEmployeeLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchEmployees();
