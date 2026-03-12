@@ -99,7 +99,7 @@ const SidebarProfile = () => {
             <ul className="flex flex-col">
               <li>
                 <button
-                  onClick={() => router.push("/my-profile")}
+                  onClick={() => router.push("/profile")}
                   className="w-full px-4 py-3 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   My Profile

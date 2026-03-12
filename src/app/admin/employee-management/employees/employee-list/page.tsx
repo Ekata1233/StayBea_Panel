@@ -12,12 +12,8 @@ import { useRouter } from "next/navigation";
 const Page = () => {
   const router = useRouter();
 
-  const {
-    refreshEmployees,
-    employees,
-    employeeError,
-    employeeLoading,
-  } = useEmployeeContext();
+  const { refreshEmployees, employees, employeeError, employeeLoading } =
+    useEmployeeContext();
 
   console.log("Employees in Context:", employees);
 
@@ -28,36 +24,55 @@ const Page = () => {
   const canDelete = authUser?.permissions?.users?.Delete;
 
   // Fetch employees
-  useEffect(() => {
-    refreshEmployees();
-  }, []);
+  // useEffect(() => {
+  //   refreshEmployees();
+  // }, []);
 
   if (loading || employeeLoading) return <Loader />;
   if (employeeError) return <p>{employeeError}</p>;
 
   // Table Columns
-const columns = [
-  {
-    header: "Name",
-    accessor: "name",
-  },
-  {
-    header: "Email",
-    accessor: "email",
-  },
-  {
-    header: "Phone",
-    accessor: "phone",
-  },
-  {
-    header: "Role",
-    accessor: "role",
-  },
-  {
-    header: "Status",
-    accessor: "status",
-  },
-];
+  const columns = [
+    {
+      header: "Name",
+      accessor: "name",
+    },
+    {
+      header: "Email",
+      accessor: "email",
+    },
+    {
+      header: "Phone",
+      accessor: "phone",
+    },
+    {
+      header: "Role",
+      accessor: "role",
+    },
+    {
+      header: "Status",
+      accessor: "status",
+      render: (row: any) => {
+        const isActive = row.status === "Active";
+        return (
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium  ${
+              isActive
+                ? "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300"
+                : "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
+            }`}
+          >
+            <span
+              className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                isActive ? "bg-green-600" : "bg-red-600"
+              }`}
+            ></span>
+            {row.status}
+          </span>
+        );
+      },
+    },
+  ];
 
   // Format employees for table
   const formattedData = employees.map((emp: any) => ({

@@ -68,7 +68,7 @@ const EmployeeRolePage = () => {
             <div className="col-span-2 p-3">Role Name</div>
             <div className="col-span-6 p-3">Permissions</div>
             <div className="col-span-1 p-3 text-center">Status</div>
-            <div className="col-span-2 p-3 text-center">Created At</div>
+            {/* <div className="col-span-2 p-3 text-center">Created At</div> */}
             <div className="col-span-1 p-3 text-center">Actions</div>
           </div>
 
@@ -190,7 +190,7 @@ const EmployeeRolePage = () => {
                 </div>
 
                 {/* Created Date */}
-                <div className="col-span-2 p-3 text-center">
+                {/* <div className="col-span-2 p-3 text-center">
                   <div className="text-sm text-black dark:text-white">
                     {new Date(role.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -204,7 +204,7 @@ const EmployeeRolePage = () => {
                       minute: '2-digit'
                     })}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Actions */}
                 <div className="col-span-1 flex justify-center gap-1 p-3">
