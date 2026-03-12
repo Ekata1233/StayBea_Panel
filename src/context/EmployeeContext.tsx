@@ -39,6 +39,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const res = await fetch("/api/employee/auth/register");
+      console.log("Fetch Employees Response:", res);
       const data = await res.json();
 
       if (res.ok && data.success && Array.isArray(data.data)) {

@@ -275,3 +275,37 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+
+// ============================
+// GET → Get All Employees
+// ============================
+export async function GET() {
+  try {
+    await connectToDatabase();
+
+    const employees = await EmployeeModel.find()
+      .populate("role")
+      .sort({ createdAt: -1 });
+
+    if (!employees || employees.length === 0) {
+      return NextResponse.json(
+        { success: false, message: "No employees found", data: [] },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    return NextResponse.json(
+      { success: true, data: employees },
+      { status: 200, headers: corsHeaders }
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message || "Something went wrong",
+      },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}

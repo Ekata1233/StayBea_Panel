@@ -9,8 +9,6 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 
 const AddEmployee = () => {
-  const [selectedRole, setSelectedRole] = useState("");
-  const [identityType, setIdentityType] = useState("");
   const { employeeRoles, employeeRoleLoading, employeeRoleError } =
     useEmployeeRoleContext();
 
