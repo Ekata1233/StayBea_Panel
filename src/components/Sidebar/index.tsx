@@ -7,6 +7,8 @@ import Image from "next/image";
 import SidebarItem from "@/components/Sidebar/SidebarItem";
 import ClickOutside from "@/components/ClickOutside";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import DropdownUser from "../Header/DropdownUser";
+import SidebarProfile from "./SidebarProfile";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -588,6 +590,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             ))}
           </nav>
           {/* <!-- Sidebar Menu --> */}
+          <div className="absolute bottom-0 w-full p-2">
+            <SidebarProfile />
+          </div>
         </div>
       </aside>
     </ClickOutside>
