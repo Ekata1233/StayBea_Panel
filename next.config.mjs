@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
 
   images: {
-    domains: ["ik.imagekit.io"], // ✅ Allow ImageKit
+    domains: ["ik.imagekit.io", "dummy-image.com"],
   },
 };
 

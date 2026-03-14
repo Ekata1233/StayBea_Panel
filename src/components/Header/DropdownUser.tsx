@@ -17,7 +17,7 @@ const ModulesDropdown = () => {
       {/* BUTTON */}
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2 "
+        className="flex items-center gap-0 bg-gray-800 text-white px-16 py-4 "
       >
         {modules[0].name}
       </button>
