@@ -3,9 +3,9 @@ import ClickOutside from "@/components/ClickOutside";
 import Image from "next/image";
 
 const modules = [
-  { name: "Dating", icon: "https://ik.imagekit.io/hzyuadmua/employees/Untitled_design_-_2025-06-02T181238.229_1C0BryMkX.png" , active: true },
-  { name: "Marriage", icon: "https://ik.imagekit.io/hzyuadmua/employees/Untitled_design_-_2025-06-02T181238.229_1C0BryMkX.png" , active: true },
-  { name: "Hookup", icon: "https://ik.imagekit.io/hzyuadmua/employees/Untitled_design_-_2025-06-02T181238.229_1C0BryMkX.png" , active: true },
+  { name: "Mariage", icon: "https://ik.imagekit.io/hzyuadmua/employees/pepsi_remove_s44QU-UacL.png" , active: true },
+  { name: "Long Term", icon: "https://ik.imagekit.io/hzyuadmua/employees/pepsi_remove_s44QU-UacL.png" , active: true },
+  { name: "Casual", icon: "https://ik.imagekit.io/hzyuadmua/employees/pepsi_remove_s44QU-UacL.png" , active: true },
 ];
 
 const ModulesDropdown = () => {
