@@ -102,32 +102,29 @@ const Header = (props: {
           </form>
         </div>
 
-       <div className="flex items-center gap-3 2xsm:gap-7">
-  <ul className="flex items-center gap-2 2xsm:gap-4">
-    
-    {/* Dark Mode Toggler */}
-    <li className="py-2">
-      <DarkModeSwitcher />
-    </li>
+        <div className="flex items-center gap-3 2xsm:gap-7">
+          <ul className="flex items-center gap-2 2xsm:gap-4">
+            {/* Dark Mode Toggler */}
+            <li className="py-2">
+              <DarkModeSwitcher />
+            </li>
 
-    {/* Notification Menu Area */}
-    <li className="py-2">
-      <DropdownNotification />
-    </li>
+            {/* Notification Menu Area */}
+            <li className="py-2">
+              <DropdownNotification />
+            </li>
 
-    {/* Chat Notification Area */}
-    <li className="py-2">
-      <DropdownMessage />
-    </li>
+            {/* Chat Notification Area */}
+            <li className="py-2">
+              <DropdownMessage />
+            </li>
+          </ul>
 
-  </ul>
-
-  {/* User Area - Full Height */}
-  <div className="py-0 h-full flex items-center ">
-    <DropdownUser />
-  </div>
-</div>
-
+          {/* User Area - Full Height */}
+          <div className="flex h-full items-center py-0 ">
+            <DropdownUser />
+          </div>
+        </div>
       </div>
     </header>
   );
