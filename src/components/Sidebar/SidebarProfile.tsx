@@ -23,7 +23,6 @@ const SidebarProfile = () => {
 
   const [details, setDetails] = useState<IEmployeeDetails | null>(null);
 
-  console.log("Authenticated User in SidebarProfile:", details);
 
   useEffect(() => {
     if (!user?.userId) return;

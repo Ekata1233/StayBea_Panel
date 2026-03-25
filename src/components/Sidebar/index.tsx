@@ -361,6 +361,10 @@ const menuGroups = [
         label: "Onboarding",
         route: "#",
         children: [
+          {
+            label: "Looking-For",
+            route: "/Onboarding/Looking-For",
+          },
           { label: "Interested In", route: "/Onboarding/Interested-In" },
           {
             label: "Sexual Orientation",
@@ -378,10 +382,7 @@ const menuGroups = [
             label: "Things-U-Love",
             route: "/Onboarding/Things-U-Love",
           },
-          {
-            label: "Looking-For",
-            route: "/Onboarding/Looking-For",
-          },
+          
           {
             label: "Gender",
             route: "/Onboarding/Gender",
