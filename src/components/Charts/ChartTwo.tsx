@@ -53,16 +53,16 @@ const options: ApexOptions = {
     categories: ["M", "T", "W", "T", "F", "S", "S"],
   },
   legend: {
-    position: "top",
-    horizontalAlign: "left",
-    fontFamily: "Satoshi",
-    fontWeight: 500,
-    fontSize: "14px",
-
-    markers: {
-      radius: 99,
-    },
+  position: "top",
+  horizontalAlign: "left",
+  fontFamily: "Satoshi",
+  fontWeight: 500,
+  fontSize: "14px",
+  markers: {
+    size: 12,          // ✅ correct property
+    shape: "circle",   // ✅ optional
   },
+},
   fill: {
     opacity: 1,
   },
