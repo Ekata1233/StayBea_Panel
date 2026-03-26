@@ -10,6 +10,7 @@ const brandData: BRAND[] = [
     revenues: "5,768",
     sales: 590,
     conversion: 4.8,
+    status: "Active",
   },
   {
     logo: "/images/brand/brand-02.svg",
@@ -18,6 +19,7 @@ const brandData: BRAND[] = [
     revenues: "4,635",
     sales: 467,
     conversion: 4.3,
+    status: "Active",
   },
   {
     logo: "/images/brand/brand-06.svg",
@@ -26,6 +28,7 @@ const brandData: BRAND[] = [
     revenues: "4,290",
     sales: 420,
     conversion: 3.7,
+    status: "Active",
   },
   {
     logo: "/images/brand/brand-04.svg",
@@ -34,6 +37,7 @@ const brandData: BRAND[] = [
     revenues: "3,580",
     sales: 389,
     conversion: 2.5,
+    status: "Active",
   },
   {
     logo: "/images/brand/brand-05.svg",
@@ -42,6 +46,7 @@ const brandData: BRAND[] = [
     revenues: "6,768",
     sales: 390,
     conversion: 4.2,
+    status: "Active",
   },
 ];
 
