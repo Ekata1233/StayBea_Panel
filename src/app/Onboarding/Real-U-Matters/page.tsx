@@ -490,7 +490,7 @@ function Page() {
             showView={false}
             showEdit={false}
             showDelete={true}
-            minWidth="1000px"
+          
             isDeleting={isDeleting}
           />
 

@@ -24,7 +24,7 @@ interface GenericTableProps {
   showEdit?: boolean;
   showDelete?: boolean;
   minWidth?: string;
-   isDeleting: string | null
+  isDeleting: string | null;
 }
 
 const GenericTable = ({
@@ -38,36 +38,43 @@ const GenericTable = ({
   showView = false,
   showEdit = false,
   showDelete = true,
-  minWidth = "1000px",
+  minWidth = "100%", // ✅ changed for responsiveness
 }: GenericTableProps) => {
   const { user, loading } = useAuth();
   if (loading) return null;
 
-  // Check if any actions are visible
   const hasVisibleActions = showActions && (showView || showEdit || showDelete);
   const totalColumns = hasVisibleActions ? columns.length + 1 : columns.length;
 
   return (
-    <div className="rounded-lg border border-stroke bg-white px-5 pb-4 pt-6 shadow-md dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <div className="w-full rounded-lg border border-stroke bg-white px-3 sm:px-5 pb-4 pt-4 sm:pt-6 shadow-md dark:border-strokedark dark:bg-boxdark">
       {title && (
-        <h4 className="mb-6 text-xl font-semibold text-black dark:text-white">
+        <h4 className="mb-4 sm:mb-6 text-lg sm:text-xl font-semibold text-black dark:text-white">
           {title}
         </h4>
       )}
 
-      <div className="overflow-x-auto">
-        <div style={{ minWidth }}>
+      {/* ✅ Responsive wrapper */}
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[600px] sm:min-w-[800px] lg:min-w-full">
+          
           {/* ================= HEADER ================= */}
-          <div 
-            className="grid bg-gray-2 text-sm font-semibold dark:bg-meta-4 rounded-md"
-            style={{ 
-              gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))`,
+          <div
+            className="grid bg-gray-2 text-xs sm:text-sm font-semibold dark:bg-meta-4 rounded-md"
+            style={{
+              gridTemplateColumns: `repeat(${totalColumns}, minmax(120px, 1fr))`, // ✅ responsive columns
             }}
           >
             {columns.map((col, index) => (
               <div
                 key={index}
-                className={`p-3 ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'}`}
+                className={`p-2 sm:p-3 ${
+                  col.align === "center"
+                    ? "text-center"
+                    : col.align === "right"
+                    ? "text-right"
+                    : "text-left"
+                }`}
                 style={{ width: col.width }}
               >
                 {col.header}
@@ -75,7 +82,7 @@ const GenericTable = ({
             ))}
 
             {hasVisibleActions && (
-              <div className="p-3 text-center">Actions</div>
+              <div className="p-2 sm:p-3 text-center">Actions</div>
             )}
           </div>
 
@@ -84,14 +91,20 @@ const GenericTable = ({
             <div
               key={rowIndex}
               className="grid items-center border-b border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-3 transition"
-              style={{ 
-                gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))`,
+              style={{
+                gridTemplateColumns: `repeat(${totalColumns}, minmax(120px, 1fr))`, // ✅ responsive columns
               }}
             >
               {columns.map((col, colIndex) => (
-                <div 
-                  key={colIndex} 
-                  className={`p-3 ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'}`}
+                <div
+                  key={colIndex}
+                  className={`p-2 sm:p-3 text-xs sm:text-sm ${
+                    col.align === "center"
+                      ? "text-center"
+                      : col.align === "right"
+                      ? "text-right"
+                      : "text-left"
+                  }`}
                   style={{ width: col.width }}
                 >
                   {col.render ? col.render(row) : row[col.accessor]}
@@ -100,37 +113,34 @@ const GenericTable = ({
 
               {/* ================= ACTIONS ================= */}
               {hasVisibleActions && (
-                <div className="flex justify-center gap-3 p-3">
-                  {/* VIEW - Only if enabled */}
+                <div className="flex justify-center gap-2 sm:gap-3 p-2 sm:p-3">
                   {showView && (
                     <button
                       onClick={() => onView?.(row)}
-                      className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-300 transition"
+                      className="p-1.5 sm:p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-300 transition"
                       title="View"
                     >
-                      <Eye size={18} />
+                      <Eye size={16} className="sm:w-[18px] sm:h-[18px]" />
                     </button>
                   )}
 
-                  {/* EDIT - Only if enabled and user has permission */}
                   {showEdit && (
                     <button
                       onClick={() => onEdit?.(row)}
-                      className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 transition"
+                      className="p-1.5 sm:p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 transition"
                       title="Edit"
                     >
-                      <Pencil size={18} />
+                      <Pencil size={16} className="sm:w-[18px] sm:h-[18px]" />
                     </button>
                   )}
 
-                  {/* DELETE - Only if enabled */}
                   {showDelete && (
                     <button
                       onClick={() => onDelete?.(row)}
-                      className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 transition"
+                      className="p-1.5 sm:p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 transition"
                       title="Delete"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                     </button>
                   )}
                 </div>
@@ -138,9 +148,9 @@ const GenericTable = ({
             </div>
           ))}
 
-          {/* Empty state */}
+          {/* ================= EMPTY ================= */}
           {data.length === 0 && (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400 text-sm">
               No data available
             </div>
           )}
