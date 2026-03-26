@@ -1,6 +1,6 @@
 "use client";
 
-import { IEmployeeRole } from "@/types/employeeRole";
+import { IEmployeeRole, PermissionActions } from "@/types/employeeRole";
 import React, {
   createContext,
   useContext,
@@ -9,14 +9,19 @@ import React, {
   ReactNode,
 } from "react";
 
+export type CreateEmployeeRoleInput = {
+  roleName: string;
+  permissions: {
+    [module: string]: PermissionActions;
+  };
+};
 
 interface EmployeeRoleContextType {
   employeeRoles: IEmployeeRole[];
   employeeRoleLoading: boolean;
   employeeRoleError: string | null;
   refreshEmployeeRoles: () => Promise<void>;
-  addEmployeeRole: (role: Omit<IEmployeeRole, "_id">) => Promise<void>;
-}
+addEmployeeRole: (role: CreateEmployeeRoleInput) => Promise<void>;}
 
 const EmployeeRoleContext = createContext<EmployeeRoleContextType | undefined>(
   undefined
@@ -47,7 +52,7 @@ export const EmployeeRoleProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-   const addEmployeeRole = async (role: Omit<IEmployeeRole, "_id">) => {
+   const addEmployeeRole = async (role: CreateEmployeeRoleInput) => {
     try {
       setEmployeeRoleLoading(true);
       setEmployeeRoleError(null);
