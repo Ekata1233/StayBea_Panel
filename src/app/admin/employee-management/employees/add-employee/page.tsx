@@ -208,7 +208,11 @@ const AddEmployee = () => {
                       >
                         <option value="">Select a role</option>
                         {employeeRoles.map((role) => (
-                          <option key={role._id} value={role._id}>
+                          <option
+                            key={role._id.toString()}
+                            value={role._id.toString()}
+                          >
+                            {" "}
                             {role.roleName}
                           </option>
                         ))}
