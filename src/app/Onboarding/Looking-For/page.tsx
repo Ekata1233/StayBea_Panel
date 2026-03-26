@@ -12,7 +12,7 @@ import Button from "@/components/ui/Button";
 import FileInput from "@/components/ui/FileInput";
 import GenericTable from "@/components/ui/GenericTable";
 import { Loader2, X, Plus, Eye } from "lucide-react";
-import {  useFlowType } from "@/utils/flowType";
+import { useFlowType } from "@/utils/flowType";
 
 function Page() {
   const { createData, data, deleteData, loading } = useLookingFor();
@@ -31,9 +31,9 @@ function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-const flowType = useFlowType();
+  const flowType = useFlowType();
 
-console.log("flow type : ", flowType)
+  console.log("flow type : ", flowType)
 
   /* ================= ITEMS HANDLERS ================= */
   const addItem = () => {
@@ -76,12 +76,34 @@ console.log("flow type : ", flowType)
     setItems(updated);
   };
 
+  const addOption = (itemIndex: number) => {
+    const updated = [...items];
+    updated[itemIndex].options.push("");
+    setItems(updated);
+  };
+
+  const removeOption = (itemIndex: number, optIndex: number) => {
+    const updated = [...items];
+    updated[itemIndex].options = updated[itemIndex].options.filter(
+      (_, i) => i !== optIndex,
+    );
+    setItems(updated);
+  };
+
+  const handleOptionChange = (
+    itemIndex: number,
+    optIndex: number,
+    value: string,
+  ) => {
+    const updated = [...items];
+    updated[itemIndex].options[optIndex] = value;
+    setItems(updated);
+  };
+
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const flowType = getFlowType();
-
-
+    const currentFlowType = useFlowType();
 
     // Validation
     if (!title.trim()) {
@@ -106,12 +128,12 @@ console.log("flow type : ", flowType)
 
       // Append title
       formData.append("title", title.trim());
-if (!flowType) {
-  toast.error("Invalid or missing flow type");
-  return;
-}
+      if (!currentFlowType) {
+        toast.error("Invalid or missing flow type");
+        return;
+      }
 
-formData.append("flowType", flowType);
+      formData.append("flowType", currentFlowType);
       // Append descriptions and images
       const optionsArray: string[][] = [];
 
@@ -161,19 +183,16 @@ formData.append("flowType", flowType);
   };
 
   /* ================= DELETE ================= */
-  const handleDelete = async (row: any) => {
-    // Since we're deleting all data, we can use the parentId or just call deleteData
-    if (
-      !window.confirm("Are you sure you want to delete all Looking For data?")
-    ) {
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete all Looking For data for this flow type?")) {
       return;
     }
 
-    setIsDeleting(row.parentId || "all");
+    setIsDeleting("all");
 
     try {
-      await deleteData();
-      toast.success("All Looking For data deleted successfully!");
+      await deleteData(flowType); // Pass flowType to delete only data for this flow type
+      toast.success(`Looking For data for ${flowType} deleted successfully!`);
     } catch (error: any) {
       toast.error(error.message || "Failed to delete");
     } finally {
@@ -185,10 +204,15 @@ formData.append("flowType", flowType);
   const formattedData = useMemo(() => {
     if (!data || data.length === 0) return [];
 
+    // Filter data by current flow type
+    const filteredData = data.filter((item: any) => item.flowType === flowType);
+    
+    if (filteredData.length === 0) return [];
+
     // Flatten items for display and mark first item in each group
     const rows: any[] = [];
 
-    data.forEach((item: any, docIndex: number) => {
+    filteredData.forEach((item: any, docIndex: number) => {
       item.items?.forEach((subItem: any, itemIndex: number) => {
         rows.push({
           _id: `${item._id}-${itemIndex}`,
@@ -199,173 +223,87 @@ formData.append("flowType", flowType);
           parentId: item._id,
           isFirstInGroup: itemIndex === 0, // Mark first item in group
           groupSize: item.items.length, // Total items in this group
+          flowType: item.flowType, // Include flowType for reference
         });
       });
     });
 
     return rows;
-  }, [data]);
-  const addOption = (itemIndex: number) => {
-    const updated = [...items];
-    updated[itemIndex].options.push("");
-    setItems(updated);
-  };
+  }, [data, flowType]);
 
-  const removeOption = (itemIndex: number, optIndex: number) => {
-    const updated = [...items];
-    updated[itemIndex].options = updated[itemIndex].options.filter(
-      (_, i) => i !== optIndex,
-    );
-    setItems(updated);
-  };
-
-  const handleOptionChange = (
-    itemIndex: number,
-    optIndex: number,
-    value: string,
-  ) => {
-    const updated = [...items];
-    updated[itemIndex].options[optIndex] = value;
-    setItems(updated);
-  };
-  /* ================= CUSTOM TABLE COMPONENT ================= */
-  const CustomTable = ({ data, onDelete, isDeleting }: any) => {
-    return (
-      <div className="overflow-hidden rounded-lg border border-stroke bg-white shadow-md dark:border-strokedark dark:bg-boxdark">
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            {/* Table Header */}
-            <thead className="bg-gray-2 text-sm font-semibold dark:bg-meta-4">
-              <tr>
-                <th className="min-w-[150px] p-3 text-left">Title</th>
-                <th className="min-w-[250px] p-3 text-left">Description</th>
-                <th className="min-w-[120px] p-3 text-left">Image</th>
-                <th className="min-w-[100px] p-3 text-center">Actions</th>
-              </tr>
-            </thead>
-
-            {/* Table Body */}
-            <tbody>
-              {data.map((row: any, index: number) => (
-                <tr
-                  key={row._id}
-                  className="border-b border-stroke transition hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-3"
+  /* ================= TABLE COLUMNS ================= */
+  const columns = [
+    {
+      header: "Title",
+      accessor: "title",
+      width: "150px",
+      align: "left" as const,
+      render: (row: any) => (
+        <span className="font-semibold text-black dark:text-white">
+          {row.title}
+        </span>
+      ),
+    },
+    {
+      header: "Description",
+      accessor: "description",
+      width: "250px",
+      align: "left" as const,
+      render: (row: any) => (
+        <div className="group relative">
+          <p className="break-words text-sm text-gray-700 dark:text-gray-300">
+            {row.description.length > 60
+              ? row.description.substring(0, 60) + "..."
+              : row.description}
+          </p>
+          {row.options && row.options.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {row.options.map((opt: string, i: number) => (
+                <span
+                  key={i}
+                  className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                  title={opt}
                 >
-                  {/* Title Column with RowSpan */}
-                  {row.isFirstInGroup ? (
-                    <td
-                      className="p-3 align-top font-semibold text-black dark:text-white"
-                      rowSpan={row.groupSize}
-                    >
-                      {row.title}
-                    </td>
-                  ) : null}
-
-                  {/* Description Column */}
-                  <td className="p-3">
-                    <div className="group relative">
-                      <p className="break-words text-sm text-gray-700 dark:text-gray-300">
-                        {row.description.length > 60
-                          ? row.description.substring(0, 60) + "..."
-                          : row.description}
-                      </p>
-                      {row.options && row.options.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {row.options.map((opt: string, i: number) => (
-                            <span
-                              key={i}
-                              className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                            >
-                              {opt}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {row.description.length > 60 && (
-                        <div className="absolute bottom-full left-0 z-10 mb-2 hidden group-hover:block">
-                          <div className="max-w-xs rounded-lg bg-gray-900 p-2 text-xs text-white">
-                            {row.description}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* Image Column */}
-                  <td className="p-3">
-                    <div className="flex justify-start">
-                      <div className="group relative">
-                        <img
-                          src={row.image}
-                          alt={row.description}
-                          className="h-12 w-12 rounded-md border border-gray-200 object-cover dark:border-gray-700"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity group-hover:opacity-100">
-                          <Eye
-                            size={16}
-                            className="cursor-pointer text-white"
-                            onClick={() => window.open(row.image, "_blank")}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Actions Column with RowSpan - Only for first item in group */}
-                  {row.isFirstInGroup ? (
-                    <td
-                      className="p-3 text-center align-middle"
-                      rowSpan={row.groupSize}
-                    >
-                      <button
-                        onClick={() => onDelete(row)}
-                        disabled={
-                          isDeleting === row.parentId || isDeleting === "all"
-                        }
-                        className={`rounded-full bg-red-100 p-2 text-red-600 transition hover:bg-red-200 dark:bg-red-900 dark:text-red-300 ${
-                          isDeleting === row.parentId || isDeleting === "all"
-                            ? "cursor-not-allowed opacity-50"
-                            : ""
-                        }`}
-                        title="Delete All"
-                      >
-                        {isDeleting === row.parentId || isDeleting === "all" ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                            <path d="M8 4V3c0-1 1-2 2-2h4c1 0 2 1 2 2v1"></path>
-                          </svg>
-                        )}
-                      </button>
-                    </td>
-                  ) : null}
-                </tr>
+                  {opt.length > 20 ? opt.substring(0, 20) + "..." : opt}
+                </span>
               ))}
-            </tbody>
-          </table>
-
-          {/* Empty State */}
-          {data.length === 0 && (
-            <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-              No data available
+            </div>
+          )}
+          {row.description.length > 60 && (
+            <div className="absolute bottom-full left-0 z-10 mb-2 hidden group-hover:block">
+              <div className="max-w-xs rounded-lg bg-gray-900 p-2 text-xs text-white">
+                {row.description}
+              </div>
             </div>
           )}
         </div>
-      </div>
-    );
-  };
+      ),
+    },
+    {
+      header: "Image",
+      accessor: "image",
+      width: "120px",
+      align: "center" as const,
+      render: (row: any) => (
+        <div className="flex justify-center">
+          <div className="group relative">
+            <img
+              src={row.image}
+              alt={row.description}
+              className="h-12 w-12 rounded-md border border-gray-200 object-cover dark:border-gray-700"
+            />
+            <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity group-hover:opacity-100">
+              <Eye
+                size={16}
+                className="cursor-pointer text-white"
+                onClick={() => window.open(row.image, "_blank")}
+              />
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
 
   /* ================= UI ================= */
   return (
@@ -379,7 +317,7 @@ formData.append("flowType", flowType);
           className="mb-6 rounded-xl bg-white p-4 shadow-md dark:bg-boxdark md:p-6"
         >
           <h2 className="mb-4 text-lg font-bold text-black dark:text-white md:mb-6 md:text-xl">
-            Create Looking For
+            Create Looking For - {flowType?.toUpperCase() || "Loading..."}
           </h2>
 
           {/* TITLE */}
@@ -445,43 +383,43 @@ formData.append("flowType", flowType);
                 </div>
 
                 {flowType !== "marriage" && (
-                <div className="mt-4">
-                  <label className="mb-2 block text-sm font-medium">
-                    Options
-                  </label>
+                  <div className="mt-4">
+                    <label className="mb-2 block text-sm font-medium">
+                      Options
+                    </label>
 
-                  {item.options.map((opt, optIndex) => (
-                    <div key={optIndex} className="mb-2 flex gap-2">
-                      <input
-                        type="text"
-                        placeholder={`Option ${optIndex + 1}`}
-                        value={opt}
-                        onChange={(e) =>
-                          handleOptionChange(index, optIndex, e.target.value)
-                        }
-                        className="w-full rounded border p-2"
-                      />
+                    {item.options.map((opt, optIndex) => (
+                      <div key={optIndex} className="mb-2 flex gap-2">
+                        <input
+                          type="text"
+                          placeholder={`Option ${optIndex + 1}`}
+                          value={opt}
+                          onChange={(e) =>
+                            handleOptionChange(index, optIndex, e.target.value)
+                          }
+                          className="w-full rounded border p-2"
+                        />
 
-                      {item.options.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeOption(index, optIndex)}
-                          className="text-red-500"
-                        >
-                          <X size={16} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                        {item.options.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeOption(index, optIndex)}
+                            className="text-red-500"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
 
-                  <button
-                    type="button"
-                    onClick={() => addOption(index)}
-                    className="text-sm text-blue-600"
-                  >
-                    + Add Option
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => addOption(index)}
+                      className="text-sm text-blue-600"
+                    >
+                      + Add Option
+                    </button>
+                  </div>
                 )}
                 {/* Image Preview */}
                 {item.preview && (
@@ -528,19 +466,28 @@ formData.append("flowType", flowType);
 
         {/* ================= TABLE ================= */}
         <div className="mt-6 md:mt-8">
-          <h2 className="mb-4 text-xl font-bold text-black dark:text-white">
-            Saved Looking For Data
-          </h2>
-
-          <CustomTable
+          <GenericTable
+            title={`Saved Looking For Data - ${flowType?.toUpperCase() || "Loading..."}`}
+            columns={columns}
             data={formattedData}
             onDelete={handleDelete}
+            showActions={true}
+            showView={false}
+            showEdit={false}
+            showDelete={true}
+            minWidth="1000px"
             isDeleting={isDeleting}
           />
 
           {loading && !data.length && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            </div>
+          )}
+
+          {!loading && formattedData.length === 0 && data && data.length > 0 && (
+            <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+              No data found for flow type: {flowType}
             </div>
           )}
         </div>
