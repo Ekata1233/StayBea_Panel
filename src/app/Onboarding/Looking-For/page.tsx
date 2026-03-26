@@ -103,7 +103,6 @@ function Page() {
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const currentFlowType = useFlowType();
 
     // Validation
     if (!title.trim()) {
@@ -128,12 +127,12 @@ function Page() {
 
       // Append title
       formData.append("title", title.trim());
-      if (!currentFlowType) {
+      if (!flowType) {
         toast.error("Invalid or missing flow type");
         return;
       }
 
-      formData.append("flowType", currentFlowType);
+      formData.append("flowType", flowType);
       // Append descriptions and images
       const optionsArray: string[][] = [];
 
@@ -191,7 +190,7 @@ function Page() {
     setIsDeleting("all");
 
     try {
-      await deleteData(flowType); // Pass flowType to delete only data for this flow type
+      await deleteData(); // Pass flowType to delete only data for this flow type
       toast.success(`Looking For data for ${flowType} deleted successfully!`);
     } catch (error: any) {
       toast.error(error.message || "Failed to delete");
