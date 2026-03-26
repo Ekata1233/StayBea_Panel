@@ -87,7 +87,7 @@ const EmployeeRolePage = () => {
               </h3>
 
               <p className="max-w-sm text-sm text-gray-500 dark:text-gray-400">
-                You haven't created any employee roles yet. Create a role to
+               You haven&#39;t created any employee roles yet. Create a role to
                 manage permissions and access control.
               </p>
             </div>
