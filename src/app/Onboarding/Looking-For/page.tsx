@@ -2,7 +2,7 @@
 "use client";
 
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLookingFor } from "@/context/LookingForContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -199,6 +199,33 @@ function Page() {
     }
   };
 
+  useEffect(() => {
+  if (!data || !flowType) return;
+
+  const existing = data.find((item: any) => item.flowType === flowType);
+
+  if (existing) {
+    setTitle(existing.title || "");
+
+    setItems(
+      existing.items?.length
+        ? existing.items.map((item: any) => ({
+            description: item.description || "",
+            image: null, // ⚠️ don't preload file
+            preview: item.image || null, // ✅ show existing image
+            options: item.options?.length ? item.options : [""],
+          }))
+        : [
+            {
+              description: "",
+              image: null,
+              preview: null,
+              options: [""],
+            },
+          ]
+    );
+  }
+}, [data, flowType]);
   /* ================= FORMAT DATA FOR TABLE ================= */
   const formattedData = useMemo(() => {
   if (!data || data.length === 0) return [];
