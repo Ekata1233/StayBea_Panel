@@ -201,34 +201,28 @@ function Page() {
 
   /* ================= FORMAT DATA FOR TABLE ================= */
   const formattedData = useMemo(() => {
-    if (!data || data.length === 0) return [];
+  if (!data || data.length === 0) return [];
 
-    // Filter data by current flow type
-    const filteredData = data.filter((item: any) => item.flowType === flowType);
-    
-    if (filteredData.length === 0) return [];
+  const rows: any[] = [];
 
-    // Flatten items for display and mark first item in each group
-    const rows: any[] = [];
-
-    filteredData.forEach((item: any, docIndex: number) => {
-      item.items?.forEach((subItem: any, itemIndex: number) => {
-        rows.push({
-          _id: `${item._id}-${itemIndex}`,
-          title: itemIndex === 0 ? item.title : "", // Show title only for first item
-          description: subItem.description,
-          image: subItem.image,
-          options: subItem.options || [],
-          parentId: item._id,
-          isFirstInGroup: itemIndex === 0, // Mark first item in group
-          groupSize: item.items.length, // Total items in this group
-          flowType: item.flowType, // Include flowType for reference
-        });
+  data.forEach((item: any, docIndex: number) => {
+    item.items?.forEach((subItem: any, itemIndex: number) => {
+      rows.push({
+        _id: `${item._id}-${itemIndex}`,
+        title: itemIndex === 0 ? item.title : "",
+        description: subItem.description,
+        image: subItem.image,
+        options: subItem.options || [],
+        parentId: item._id,
+        isFirstInGroup: itemIndex === 0,
+        groupSize: item.items.length,
+        flowType: item.flowType, // keep this if needed
       });
     });
+  });
 
-    return rows;
-  }, [data, flowType]);
+  return rows;
+}, [data]);
 
   /* ================= TABLE COLUMNS ================= */
   const columns = [

@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
+import { useFlowType } from "@/utils/flowType";
 
 // Types
 interface LookingForItem {
@@ -24,7 +25,7 @@ interface LookingForContextType {
   error: string | null;
   createData: (formData: FormData) => Promise<void>;
   deleteData: () => Promise<void>;
-  refreshData: () => Promise<void>;
+  refreshData:(flowType: string) => Promise<void>;
 }
 
 const LookingForContext = createContext<LookingForContextType | undefined>(undefined);
@@ -35,12 +36,16 @@ export const LookingForProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<LookingFor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+    const flowType = useFlowType();
+  
 
   // Fetch data
-  const refreshData = async () => {
+  const refreshData = async (flowType: string) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/get-all`);
+     const response = await axios.get(
+      `${API_URL}/get-all?flowType=${flowType}` // 👈 KEY CHANGE
+    );
       if (response.data.success) {
         setData(response.data.data);
       }
@@ -54,24 +59,28 @@ export const LookingForProvider = ({ children }: { children: ReactNode }) => {
 
   // Create data
   const createData = async (formData: FormData) => {
-    try {
-      setLoading(true);
-      const response = await axios.post(`${API_URL}/create`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      if (response.data.success) {
-        await refreshData(); // Refresh after creating
-        return response.data;
-      }
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    const flowType = formData.get("flowType") as string; // 👈 GET FLOWTYPE
+
+    const response = await axios.post(`${API_URL}/create`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (response.data.success) {
+      await refreshData(flowType); // 👈 IMPORTANT
+      return response.data;
     }
-  };
+  } catch (err: any) {
+    setError(err.message);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Delete data
   const deleteData = async () => {
@@ -91,8 +100,10 @@ export const LookingForProvider = ({ children }: { children: ReactNode }) => {
 
   // Load data on mount
   useEffect(() => {
-    refreshData();
-  }, []);
+  if (flowType) {
+    refreshData(flowType);
+  }
+}, [flowType]);
 
   return (
     <LookingForContext.Provider

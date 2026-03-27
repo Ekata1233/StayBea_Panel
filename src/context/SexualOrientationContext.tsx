@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useFlowType } from "@/utils/flowType";
 
 interface Option {
   label: string;
@@ -10,10 +11,12 @@ interface SexualOrientation {
   _id?: string;
   title: string;
   options: Option[];
+  flowType?: string; // ✅ added
 }
 
 interface ContextType {
   data: SexualOrientation[];
+  loading: boolean;
   createData: (payload: SexualOrientation) => Promise<void>;
   deleteData: () => Promise<void>;
   fetchData: () => Promise<void>;
@@ -27,29 +30,48 @@ export const SexualOrientationProvider = ({
   children: React.ReactNode;
 }) => {
   const [data, setData] = useState<SexualOrientation[]>([]);
-
+  const flowType = useFlowType(); 
+  const [loading, setLoading] = useState(false);
   const API_BASE =
     "https://dating-app-backend-plum.vercel.app/api/sexual-orientation";
 
   /* ================= FETCH ================= */
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/get-all`);
-      const json = await res.json();
-      setData(json.data || []);
-    } catch (error) {
-      console.error("Fetch error:", error);
-    }
-  };
+const fetchData = async () => {
+  if (!flowType) return;
+
+  setLoading(true); // ✅ START
+
+  try {
+    const res = await fetch(`${API_BASE}/get-all?flowType=${flowType}`);
+    const json = await res.json();
+
+    const filtered = (json.data || []).filter(
+      (item: SexualOrientation) => item.flowType === flowType
+    );
+
+    setData(filtered);
+  } catch (error) {
+    console.error("Fetch error:", error);
+  } finally {
+    setLoading(false); // ✅ END
+  }
+};
 
   /* ================= CREATE ================= */
   const createData = async (payload: SexualOrientation) => {
+    if (!flowType) {
+      throw new Error("Flow type missing");
+    }
+
     const res = await fetch(`${API_BASE}/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        flowType, // ✅ attach flowType
+      }),
     });
 
     if (!res.ok) {
@@ -61,7 +83,11 @@ export const SexualOrientationProvider = ({
 
   /* ================= DELETE ================= */
   const deleteData = async () => {
-    const res = await fetch(`${API_BASE}/delete`, {
+    if (!flowType) {
+      throw new Error("Flow type missing");
+    }
+
+    const res = await fetch(`${API_BASE}/delete?flowType=${flowType}`, {
       method: "DELETE",
     });
 
@@ -74,11 +100,11 @@ export const SexualOrientationProvider = ({
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [flowType]); // ✅ refetch when flow changes
 
   return (
     <SexualOrientationContext.Provider
-      value={{ data, createData, deleteData, fetchData }}
+      value={{ data,loading, createData, deleteData, fetchData }}
     >
       {children}
     </SexualOrientationContext.Provider>
