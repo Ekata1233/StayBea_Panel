@@ -13,6 +13,7 @@ import FileInput from "@/components/ui/FileInput";
 import GenericTable from "@/components/ui/GenericTable";
 import { Loader2, X, Plus, Eye } from "lucide-react";
 import { useFlowType } from "@/utils/flowType";
+import Image from "next/image";
 
 function Page() {
   const { createData, data, deleteData, loading } = useLookingFor();
@@ -307,7 +308,7 @@ function Page() {
       render: (row: any) => (
         <div className="flex justify-center">
           <div className="group relative">
-            <img
+            <Image
               src={row.image}
               alt={row.description}
               className="h-12 w-12 rounded-md border border-gray-200 object-cover dark:border-gray-700"
@@ -448,7 +449,7 @@ function Page() {
                       Preview:
                     </p>
                     <div className="relative h-24 w-24">
-                      <img
+                      <Image
                         src={item.preview}
                         alt="Preview"
                         className="h-full w-full rounded-lg border border-gray-300 object-cover"
