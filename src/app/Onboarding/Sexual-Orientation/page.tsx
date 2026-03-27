@@ -169,7 +169,7 @@ useEffect(() => {
     });
 
     return rows;
-  }, [data]);
+  }, [data,flowType]);
 
   /* ================= TABLE COLUMNS ================= */
   const columns = [
