@@ -19,39 +19,17 @@ function Page() {
 
   /* ================= FORM STATE ================= */
   const [title, setTitle] = useState("");
-  const [options, setOptions] = useState<Array<{ label: string; description: string }>>([
-    { label: "", description: "" }
-  ]);
+  const [options, setOptions] = useState<
+    Array<{ label: string; description: string }>
+  >([{ label: "", description: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   console.log("flow type : ", flowType);
-useEffect(() => {
-  if (!data || !flowType) return;
 
-  const existing = data.find((item: any) => item.flowType === flowType);
-  console.log("exsting :",existing);
-  
-
-  if (existing) {
-    setTitle(existing.title || "");
-
-    setOptions(
-      existing.options?.length
-        ? existing.options.map((opt: any) => ({
-            label: opt.label || "",
-            description: opt.description || "",
-          }))
-        : [{ label: "", description: "" }]
-    );
-  }
-}, [data, flowType]);
   /* ================= OPTIONS HANDLERS ================= */
   const addOption = () => {
-    setOptions([
-      ...options,
-      { label: "", description: "" }
-    ]);
+    setOptions([...options, { label: "", description: "" }]);
   };
 
   const removeOption = (index: number) => {
@@ -87,7 +65,7 @@ useEffect(() => {
 
     // Check if at least one option has label and description
     const validOptions = options.filter(
-      (opt) => opt.label.trim() && opt.description.trim()
+      (opt) => opt.label.trim() && opt.description.trim(),
     );
 
     if (validOptions.length === 0) {
@@ -105,9 +83,9 @@ useEffect(() => {
     try {
       const payload = {
         title: title.trim(),
-        options: validOptions.map(opt => ({
+        options: validOptions.map((opt) => ({
           label: opt.label.trim(),
-          description: opt.description.trim()
+          description: opt.description.trim(),
         })),
         flowType: flowType,
       };
@@ -131,7 +109,11 @@ useEffect(() => {
 
   /* ================= DELETE ================= */
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete all Sexual Orientation data for this flow type?")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete all Sexual Orientation data for this flow type?",
+      )
+    ) {
       return;
     }
 
@@ -139,7 +121,9 @@ useEffect(() => {
 
     try {
       await deleteData();
-      toast.success(`Sexual Orientation data for ${flowType} deleted successfully!`);
+      toast.success(
+        `Sexual Orientation data for ${flowType} deleted successfully!`,
+      );
     } catch (error: any) {
       toast.error(error.message || "Failed to delete");
     } finally {
@@ -147,6 +131,30 @@ useEffect(() => {
     }
   };
 
+useEffect(() => {
+  if (!flowType) return;
+
+  const existing = data?.find(
+    (item: any) => item.flowType === flowType
+  );
+
+  if (existing) {
+    setTitle(existing.title || "");
+
+    setOptions(
+      existing.options?.length
+        ? existing.options.map((opt: any) => ({
+            label: opt.label || "",
+            description: opt.description || "",
+          }))
+        : [{ label: "", description: "" }]
+    );
+  } else {
+    // 🔥 CRITICAL: reset when no data for this flowType
+    setTitle("");
+    setOptions([{ label: "", description: "" }]);
+  }
+}, [data, flowType]);
   /* ================= FORMAT DATA FOR TABLE ================= */
   const formattedData = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -171,6 +179,8 @@ useEffect(() => {
     return rows;
   }, [data]);
 
+  console.log("formatted data: ", formattedData);
+
   /* ================= TABLE COLUMNS ================= */
   const columns = [
     {
@@ -178,11 +188,14 @@ useEffect(() => {
       accessor: "title",
       width: "150px",
       align: "left" as const,
-      render: (row: any) => (
-        <span className="font-semibold text-black dark:text-white">
-          {row.title}
-        </span>
-      ),
+      render: (row: any) => {
+        console.log("row: ", row);
+        return (
+          <span className="font-semibold text-black dark:text-white">
+            {row.title}
+          </span>
+        );
+      },
     },
     {
       header: "Label",
@@ -229,6 +242,7 @@ useEffect(() => {
       ),
     },
   ];
+  
 
   /* ================= UI ================= */
   return (
@@ -242,7 +256,8 @@ useEffect(() => {
           className="mb-6 rounded-xl bg-white p-4 shadow-md dark:bg-boxdark md:p-6"
         >
           <h2 className="mb-4 text-lg font-bold text-black dark:text-white md:mb-6 md:text-xl">
-            Create Sexual Orientation - {flowType?.toUpperCase() || "Loading..."}
+            Create Sexual Orientation -{" "}
+            {flowType?.toUpperCase() || "Loading..."}
           </h2>
 
           {/* TITLE */}
@@ -295,7 +310,9 @@ useEffect(() => {
                     label={`Description ${index + 1}`}
                     placeholder="Enter description for this option"
                     value={option.description}
-                    onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                    onChange={(e) =>
+                      handleDescriptionChange(index, e.target.value)
+                    }
                     disabled={isSubmitting}
                     required
                   />
@@ -348,11 +365,14 @@ useEffect(() => {
             </div>
           )}
 
-          {!loading && formattedData.length === 0 && data && data.length > 0 && (
-            <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-              No data found for flow type: {flowType}
-            </div>
-          )}
+          {!loading &&
+            formattedData.length === 0 &&
+            data &&
+            data.length > 0 && (
+              <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+                No data found for flow type: {flowType}
+              </div>
+            )}
         </div>
       </div>
     </DefaultLayout>
