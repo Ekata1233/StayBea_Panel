@@ -5,7 +5,7 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { useState, useMemo, useEffect } from "react";
 import { useLookingFor } from "@/context/LookingForContext";
 import { ToastContainer, toast } from "react-toastify";
-
+import "react-toastify/dist/ReactToastify.css";
 
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -309,12 +309,12 @@ function Page() {
         <div className="flex justify-center">
           <div className="group relative">
             <Image
-              src={row.image}
-              alt={row.description}
-              width={200}
-  height={200}
-              className="h-12 w-12 rounded-md border border-gray-200 object-cover dark:border-gray-700"
-            />
+  src={row.image}
+  alt={row.description}
+  width={48}
+  height={48}
+  className="rounded-md border border-gray-200 object-cover dark:border-gray-700"
+/>
             <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity group-hover:opacity-100">
               <Eye
                 size={16}
@@ -452,9 +452,9 @@ function Page() {
                     </p>
                     <div className="relative h-24 w-24">
                       <Image
-                        src={item.preview}
-                        width={200}
-  height={200}
+                        src={item.preview} 
+                        width={48}
+  height={48}
                         alt="Preview"
                         className="h-full w-full rounded-lg border border-gray-300 object-cover"
                       />
@@ -496,7 +496,7 @@ function Page() {
             columns={columns}
             data={formattedData}
             onDelete={handleDelete}
-            showActions={false}
+            showActions={true}
             showView={false}
             showEdit={false}
             showDelete={true}
