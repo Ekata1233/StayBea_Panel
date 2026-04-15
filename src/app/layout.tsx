@@ -16,6 +16,11 @@ import { ThingsYouLoveProvider } from "@/context/ThingsYouLoveContext";
 import { LookingForProvider } from "@/context/LookingForContext";
 import { GenderProvider } from "@/context/GenderContext";
 import { UserProvider } from "@/context/UserContext";
+import { ReligionProvider } from "@/context/ReligionContext";
+import { EducationProvider } from "@/context/EducationContext";
+import { WorkDetailsProvider } from "@/context/WorkDetailsContext";
+import { HealthWellnessProvider } from "@/context/HealthWellnessContext";
+import { QuestionDeleteProvider } from "@/context/questionDeleteContext";
 
 export default function RootLayout({
   children,
@@ -43,10 +48,20 @@ export default function RootLayout({
                     <LifestyleProvider>
                       <RealYouMattersProvider>
                         <ThingsYouLoveProvider>
-                          <LookingForProvider>
+                         <LookingForProvider>
                             <GenderProvider>
                               <UserProvider>
+                                <ReligionProvider>
+                                  <EducationProvider>
+                                    <WorkDetailsProvider>
+                                      <HealthWellnessProvider>
+                                        <QuestionDeleteProvider>
                                 {loading ? <Loader /> : children}
+                                </QuestionDeleteProvider>
+                                </HealthWellnessProvider>
+                                </WorkDetailsProvider>
+                                </EducationProvider>
+                                </ReligionProvider>
                               </UserProvider>
                             </GenderProvider>
                           </LookingForProvider>

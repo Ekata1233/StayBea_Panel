@@ -1,27 +1,25 @@
-// app/lifestyle/page.tsx
 "use client";
 
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { useState, useMemo } from "react";
-import { useLifestyle } from "@/context/LifestyleContext";
+import { useHealthWellness } from "@/context/HealthWellnessContext";
 import { useFlowType } from "@/utils/flowType";
 import { ToastContainer, toast } from "react-toastify";
 
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import GenericTable from "@/components/ui/GenericTable";
-import { Plus, X, Loader2 } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { useQuestionDelete } from "@/context/questionDeleteContext";
 
 function Page() {
-  const { data, createData, deleteData, loading } = useLifestyle();
+  const { data, createData, deleteData, loading } = useHealthWellness();
   const flowType = useFlowType();
+
+  const screen = "HEALTH_WELLNESS";
 const { deleteQuestion } = useQuestionDelete();
-const [localData, setLocalData] = useState(data);
 
-  const screen = "LIFESTYLE";
-
-  /* 🔥 MAP FLOWTYPE → CATEGORY */
+  /* 🔥 FLOWTYPE → CATEGORY */
   const getCategory = (flow: string) => {
     switch (flow) {
       case "dating":
@@ -109,7 +107,7 @@ const [localData, setLocalData] = useState(data);
   };
 
   /* ================= DELETE ================= */
-const handleDelete = async (row: any) => {
+  const handleDelete = async (row: any) => {
   const id = row?._id;
 
   if (!id || typeof id !== "string") {
@@ -148,10 +146,6 @@ const handleDelete = async (row: any) => {
   }
 };
 
-
-
-
-
   /* ================= TABLE ================= */
   const tableData = useMemo(() => {
     return data.map((q) => ({
@@ -186,7 +180,7 @@ const handleDelete = async (row: any) => {
       <div className="p-6">
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
           <h2 className="text-xl font-bold mb-4">
-            Lifestyle - {flowType?.toUpperCase()}
+            Health & Wellness - {flowType?.toUpperCase()}
           </h2>
 
           <Input
@@ -250,7 +244,7 @@ const handleDelete = async (row: any) => {
         </form>
 
         <GenericTable
-          title={`Lifestyle Questions - ${flowType}`}
+          title={`Health & Wellness - ${flowType}`}
           columns={columns}
           data={tableData}
           onDelete={handleDelete}
