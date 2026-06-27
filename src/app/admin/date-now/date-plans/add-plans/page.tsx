@@ -6,7 +6,15 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import FileInput from "@/components/ui/FileInput";
 import GenericTable from "@/components/ui/GenericTable";
-import { Loader2, Eye, Edit, X, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Loader2,
+  Eye,
+  Edit,
+  X,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
@@ -19,6 +27,8 @@ interface OptionItem {
   sortOrder: number;
   isNew?: boolean;
   id?: string;
+  existingIconUrl?: string | null;
+  hasIconChanged?: boolean;
 }
 
 interface FormData {
@@ -48,7 +58,6 @@ const DatePlanOptionPage = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [options, setOptions] = useState<OptionData[]>([]);
-  const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [isViewing, setIsViewing] = useState<GroupedOptionData | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editType, setEditType] = useState<string | null>(null);
@@ -64,16 +73,20 @@ const DatePlanOptionPage = () => {
         iconPreview: null,
         sortOrder: 1,
         isNew: true,
+        existingIconUrl: null,
+        hasIconChanged: false,
       },
     ],
   });
+
+  console.log("Current formData:", formData);
 
   // Fetch all options
   const fetchOptions = async () => {
     try {
       setFetching(true);
       const response = await fetch(
-        `https://dating-app-backend-plum.vercel.app/api/date-now/options`
+        `https://dating-app-backend-plum.vercel.app/api/date-now/options`,
       );
       const result = await response.json();
 
@@ -108,6 +121,8 @@ const DatePlanOptionPage = () => {
           iconPreview: null,
           sortOrder: prev.options.length + 1,
           isNew: true,
+          existingIconUrl: null,
+          hasIconChanged: false,
         },
       ],
     }));
@@ -120,56 +135,73 @@ const DatePlanOptionPage = () => {
       return;
     }
 
+    if (formData.options[index].iconPreview && 
+        typeof formData.options[index].iconPreview === 'string' && 
+        formData.options[index].iconPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(formData.options[index].iconPreview as string);
+    }
+
     setFormData((prev) => ({
       ...prev,
       options: prev.options.filter((_, i) => i !== index),
     }));
   };
 
-  // Handle option field change
+  // Handle option field change - FIXED
   const handleOptionChange = (
     index: number,
     field: keyof OptionItem,
-    value: string | number | File | null
+    value: string | number | File | null,
   ) => {
     setFormData((prev) => {
       const updatedOptions = [...prev.options];
-      
+      const currentOption = updatedOptions[index];
+
       if (field === "label") {
         const labelValue = value as string;
         updatedOptions[index] = {
-          ...updatedOptions[index],
+          ...currentOption,
           label: labelValue,
-          value: labelValue
-            .toLowerCase()
-            .trim()
-            .replace(/\s+/g, "_"),
+          value: labelValue.toLowerCase().trim().replace(/\s+/g, "_"),
         };
       } else if (field === "icon") {
         const file = value as File | null;
+        
         if (file) {
-          if (updatedOptions[index].iconPreview) {
-            URL.revokeObjectURL(updatedOptions[index].iconPreview as string);
+          // New file selected
+          if (currentOption.iconPreview && 
+              typeof currentOption.iconPreview === 'string' && 
+              currentOption.iconPreview.startsWith('blob:')) {
+            URL.revokeObjectURL(currentOption.iconPreview as string);
           }
+          
+          // IMPORTANT: Keep existingIconUrl if it exists, don't lose it
           updatedOptions[index] = {
-            ...updatedOptions[index],
+            ...currentOption,
             icon: file,
             iconPreview: URL.createObjectURL(file),
+            hasIconChanged: true,
+            // Preserve existingIconUrl - this is the key fix
+            existingIconUrl: currentOption.existingIconUrl || null,
           };
         } else {
+          // File removed/cleared
           updatedOptions[index] = {
-            ...updatedOptions[index],
+            ...currentOption,
             icon: null,
             iconPreview: null,
+            hasIconChanged: false,
+            // Keep existingIconUrl if it exists
+            existingIconUrl: currentOption.existingIconUrl || null,
           };
         }
       } else {
         updatedOptions[index] = {
-          ...updatedOptions[index],
+          ...currentOption,
           [field]: value,
         };
       }
-      
+
       return {
         ...prev,
         options: updatedOptions,
@@ -187,7 +219,9 @@ const DatePlanOptionPage = () => {
 
   const resetForm = () => {
     formData.options.forEach((item) => {
-      if (item.iconPreview) {
+      if (item.iconPreview && 
+          typeof item.iconPreview === 'string' && 
+          item.iconPreview.startsWith('blob:')) {
         URL.revokeObjectURL(item.iconPreview);
       }
     });
@@ -202,6 +236,8 @@ const DatePlanOptionPage = () => {
           iconPreview: null,
           sortOrder: 1,
           isNew: true,
+          existingIconUrl: null,
+          hasIconChanged: false,
         },
       ],
     });
@@ -213,23 +249,27 @@ const DatePlanOptionPage = () => {
   const handleEdit = (row: any) => {
     setIsEditMode(true);
     setEditType(row.type);
-    
+
     formData.options.forEach((item) => {
-      if (item.iconPreview) {
+      if (item.iconPreview && 
+          typeof item.iconPreview === 'string' && 
+          item.iconPreview.startsWith('blob:')) {
         URL.revokeObjectURL(item.iconPreview);
       }
     });
 
-    const typeOptions = options.filter(opt => opt.type === row.type);
-    
+    const typeOptions = options.filter((opt) => opt.type === row.type);
+
     const mappedOptions = typeOptions.map((opt) => ({
       id: opt.id,
       label: opt.label,
       value: opt.value,
       icon: opt.icon,
-      iconPreview: opt.icon,
+      iconPreview: opt.icon, // Show existing icon as preview
       sortOrder: opt.sortOrder,
       isNew: false,
+      existingIconUrl: opt.icon, // Store the existing icon URL
+      hasIconChanged: false,
     }));
 
     if (mappedOptions.length === 0) {
@@ -240,6 +280,8 @@ const DatePlanOptionPage = () => {
         iconPreview: null,
         sortOrder: 1,
         isNew: true,
+        existingIconUrl: null,
+        hasIconChanged: false,
       });
     }
 
@@ -274,6 +316,7 @@ const DatePlanOptionPage = () => {
     });
   };
 
+  // Handle Submit - FIXED
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -283,7 +326,7 @@ const DatePlanOptionPage = () => {
     }
 
     const validOptions = formData.options.filter(
-      (item) => item.label.trim() && item.value.trim()
+      (item) => item.label.trim() && item.value.trim(),
     );
 
     if (validOptions.length === 0) {
@@ -296,64 +339,79 @@ const DatePlanOptionPage = () => {
 
       // Prepare form data for multipart upload
       const formDataToSend = new FormData();
-      formDataToSend.append('type', formData.type.trim().toUpperCase());
+      formDataToSend.append("type", formData.type.trim().toUpperCase());
 
-      // Prepare options array without files
-      const optionsPayload = validOptions.map((item) => ({
-        label: item.label.trim(),
-        value: item.value.trim(),
-        sortOrder: item.sortOrder,
-        // Don't include icon in options payload initially
-      }));
+      // Prepare options array with proper icon handling
+      const optionsPayload = validOptions.map((item, index) => {
+        // Base option object
+        const option: any = {
+          label: item.label.trim(),
+          value: item.value.trim(),
+          sortOrder: item.sortOrder,
+        };
+
+        // CRITICAL: Check if this is a File object (new upload)
+        const isNewFile = item.icon instanceof File;
+        
+        // CRITICAL: Check if there's an existing icon URL
+        const hasExistingIcon = item.existingIconUrl && !isNewFile;
+
+        if (hasExistingIcon) {
+          // Keep existing icon - include the URL in JSON
+          option.icon = item.existingIconUrl;
+          console.log(`✅ Option ${index} keeping existing icon: ${item.existingIconUrl}`);
+          return option;
+        }
+
+        if (isNewFile) {
+          // New file uploaded - don't include icon in JSON, will be sent as file
+          console.log(`📁 Option ${index} has new file: ${item.icon.name}`);
+          return option;
+        }
+
+        // No icon (new option without icon)
+        option.icon = null;
+        console.log(`❌ Option ${index} has no icon`);
+        return option;
+      });
 
       // Add options as JSON string
-      formDataToSend.append('options', JSON.stringify(optionsPayload));
+      formDataToSend.append("options", JSON.stringify(optionsPayload));
 
-      // Track which options have files
-      let fileCount = 0;
-
-      // Append files to form data
-      validOptions.forEach((item) => {
+      // Append files with their correct index
+      validOptions.forEach((item, index) => {
         if (item.icon instanceof File) {
-          // Upload file directly with field name 'icons'
-          formDataToSend.append('icons', item.icon);
-          fileCount++;
+          formDataToSend.append(`icons[${index}]`, item.icon);
+          console.log(`📁 Appending file for option ${index} (${item.label}) as icons[${index}]`);
         }
-        // If it's a string URL (existing icon), we keep it in the options
       });
-
-      // If there are files but count doesn't match, we need to handle
-      // But our backend validation will handle this
 
       // Log what we're sending (for debugging)
-      console.log('Sending form data:', {
-        type: formData.type.trim().toUpperCase(),
-        options: optionsPayload,
-        fileCount: fileCount,
-        files: validOptions.filter(o => o.icon instanceof File).map(o => o.label)
-      });
+      console.log("📤 Sending form data:");
+      console.log("Type:", formData.type.trim().toUpperCase());
+      console.log("Options Payload:", JSON.stringify(optionsPayload, null, 2));
+      console.log("Files being uploaded:", validOptions
+        .filter((o) => o.icon instanceof File)
+        .map((o, i) => `icons[${i}] -> ${o.label}`)
+      );
 
       const url = `https://dating-app-backend-plum.vercel.app/api/date-now/create-options`;
-      
+
       const response = await fetch(url, {
         method: "POST",
-        body: formDataToSend, // Send as form-data
-        // Don't set Content-Type header - browser will set it with boundary
+        body: formDataToSend,
       });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        // Handle validation errors
         if (result.errors && Array.isArray(result.errors)) {
-          const errorMessages = result.errors.map((err: any) => 
-            `${err.field}: ${err.message}`
-          ).join('\n');
+          const errorMessages = result.errors
+            .map((err: any) => `${err.field}: ${err.message}`)
+            .join("\n");
           throw new Error(errorMessages || result.message);
         }
-        throw new Error(
-          result.message || `Failed to save date plan options`
-        );
+        throw new Error(result.message || `Failed to save date plan options`);
       }
 
       toast.success(result.message || "Options saved successfully");
@@ -370,7 +428,7 @@ const DatePlanOptionPage = () => {
   // Group options by type
   const groupedData = useMemo(() => {
     const grouped: { [key: string]: OptionData[] } = {};
-    
+
     options.forEach((option) => {
       if (!grouped[option.type]) {
         grouped[option.type] = [];
@@ -405,7 +463,9 @@ const DatePlanOptionPage = () => {
       align: "left" as const,
       render: (row: any) => {
         const isExpanded = expandedTypes.has(row.type);
-        const displayOptions = isExpanded ? row.options : row.options.slice(0, 3);
+        const displayOptions = isExpanded
+          ? row.options
+          : row.options.slice(0, 3);
         const hasMore = row.options.length > 3;
 
         return (
@@ -425,16 +485,18 @@ const DatePlanOptionPage = () => {
                       className="h-4 w-4 rounded object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
+                        target.style.display = "none";
                       }}
                     />
                   )}
                   {option.label}
-                  <span className="text-xs text-gray-400">(#{option.sortOrder})</span>
+                  <span className="text-xs text-gray-400">
+                    (#{option.sortOrder})
+                  </span>
                 </span>
               ))}
             </div>
-            
+
             {hasMore && (
               <button
                 onClick={() => toggleExpand(row.type)}
@@ -482,7 +544,7 @@ const DatePlanOptionPage = () => {
           >
             <Eye size={18} />
           </button>
-          
+
           <button
             onClick={() => handleEdit(row)}
             className="rounded-lg p-2 text-green-600 hover:bg-green-100 dark:text-green-400 dark:hover:bg-green-900/20"
@@ -510,7 +572,7 @@ const DatePlanOptionPage = () => {
       <ToastContainer theme="colored" />
 
       <div className="p-4 md:p-6">
-        <div className="mx-auto max-w-8xl">
+        <div className="max-w-8xl mx-auto">
           {/* Create/Update Form */}
           <form
             onSubmit={handleSubmit}
@@ -523,8 +585,8 @@ const DatePlanOptionPage = () => {
                     {isEditMode ? "Update" : "Create"} Date Plan Options
                   </h2>
                   <p className="mt-1 text-sm text-gray-500">
-                    {isEditMode 
-                      ? `Updating all options for type: ${editType}` 
+                    {isEditMode
+                      ? `Updating all options for type: ${editType}`
                       : "Add new options like Activity, Budget, Vibe, Food, Location etc."}
                   </p>
                 </div>
@@ -541,7 +603,8 @@ const DatePlanOptionPage = () => {
               </div>
               {isEditMode && (
                 <div className="mt-2 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300">
-                  <span className="font-semibold">Editing Type:</span> {editType} 
+                  <span className="font-semibold">Editing Type:</span>{" "}
+                  {editType}
                   <span className="ml-2 text-xs">
                     ({formData.options.length} options loaded)
                   </span>
@@ -560,7 +623,8 @@ const DatePlanOptionPage = () => {
               />
               {isEditMode && (
                 <p className="mt-1 text-xs text-gray-500">
-                  Type cannot be changed while editing. Cancel to create new type.
+                  Type cannot be changed while editing. Cancel to create new
+                  type.
                 </p>
               )}
             </div>
@@ -615,7 +679,7 @@ const DatePlanOptionPage = () => {
                           handleOptionChange(
                             index,
                             "icon",
-                            e.target.files ? e.target.files[0] : null
+                            e.target.files ? e.target.files[0] : null,
                           )
                         }
                         disabled={loading}
@@ -623,6 +687,16 @@ const DatePlanOptionPage = () => {
                       <p className="mt-1 text-xs text-gray-500">
                         Images will be uploaded to ImageKit
                       </p>
+                      {item.existingIconUrl && !item.hasIconChanged && (
+                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                          ✓ Current icon will be preserved
+                        </p>
+                      )}
+                      {item.hasIconChanged && item.icon instanceof File && (
+                        <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                          🔄 New icon will be uploaded
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -635,7 +709,7 @@ const DatePlanOptionPage = () => {
                           handleOptionChange(
                             index,
                             "sortOrder",
-                            Number(e.target.value)
+                            Number(e.target.value),
                           )
                         }
                         disabled={loading}
@@ -657,7 +731,7 @@ const DatePlanOptionPage = () => {
                             height={64}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
+                              target.style.display = "none";
                             }}
                           />
                         </div>
@@ -690,17 +764,16 @@ const DatePlanOptionPage = () => {
                   Cancel
                 </Button>
               )}
-              <Button
-                type="submit"
-                disabled={loading}
-              >
+              <Button type="submit" disabled={loading}>
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     {isEditMode ? "Updating..." : "Saving..."}
                   </span>
+                ) : isEditMode ? (
+                  "Update All Options"
                 ) : (
-                  isEditMode ? "Update All Options" : "Create Options"
+                  "Create Options"
                 )}
               </Button>
             </div>
@@ -736,7 +809,7 @@ const DatePlanOptionPage = () => {
       {/* View Modal - Shows ALL options of the type */}
       {isViewing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 dark:bg-boxdark">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white p-6 dark:bg-boxdark">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-black dark:text-white">
                 Options for Type: {isViewing.type}
@@ -778,25 +851,33 @@ const DatePlanOptionPage = () => {
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Label</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Label
+                      </label>
                       <p className="text-base font-semibold text-black dark:text-white">
                         {option.label}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Value</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Value
+                      </label>
                       <p className="text-base font-semibold text-black dark:text-white">
                         {option.value}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Sort Order</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Sort Order
+                      </label>
                       <p className="text-base font-semibold text-black dark:text-white">
                         {option.sortOrder}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Icon</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Icon
+                      </label>
                       {option.icon ? (
                         <div className="mt-1">
                           <Image
@@ -807,7 +888,7 @@ const DatePlanOptionPage = () => {
                             className="rounded-lg border border-gray-200 object-cover dark:border-gray-700"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
+                              target.style.display = "none";
                             }}
                           />
                         </div>
@@ -846,9 +927,7 @@ const DatePlanOptionPage = () => {
                 <Edit size={16} className="mr-2" />
                 Edit All Options
               </Button>
-              <Button onClick={closeViewModal}>
-                Close
-              </Button>
+              <Button onClick={closeViewModal}>Close</Button>
             </div>
           </div>
         </div>
