@@ -175,14 +175,13 @@ const DatePlanOptionPage = () => {
             URL.revokeObjectURL(currentOption.iconPreview as string);
           }
           
-          // IMPORTANT: Keep existingIconUrl if it exists, don't lose it
           updatedOptions[index] = {
             ...currentOption,
             icon: file,
             iconPreview: URL.createObjectURL(file),
             hasIconChanged: true,
-            // Preserve existingIconUrl - this is the key fix
-            existingIconUrl: currentOption.existingIconUrl || null,
+            // CRITICAL: Keep the existingIconUrl
+            existingIconUrl: currentOption.existingIconUrl,
           };
         } else {
           // File removed/cleared
@@ -191,8 +190,8 @@ const DatePlanOptionPage = () => {
             icon: null,
             iconPreview: null,
             hasIconChanged: false,
-            // Keep existingIconUrl if it exists
-            existingIconUrl: currentOption.existingIconUrl || null,
+            // CRITICAL: Keep the existingIconUrl
+            existingIconUrl: currentOption.existingIconUrl,
           };
         }
       } else {
@@ -350,26 +349,23 @@ const DatePlanOptionPage = () => {
           sortOrder: item.sortOrder,
         };
 
-        // CRITICAL: Check if this is a File object (new upload)
+        // CRITICAL FIX: Check if this is a File object (new upload)
         const isNewFile = item.icon instanceof File;
         
-        // CRITICAL: Check if there's an existing icon URL
-        const hasExistingIcon = item.existingIconUrl && !isNewFile;
-
-        if (hasExistingIcon) {
-          // Keep existing icon - include the URL in JSON
+        // CRITICAL FIX: If there's an existing icon URL and no new file, keep it
+        if (item.existingIconUrl && !isNewFile) {
           option.icon = item.existingIconUrl;
           console.log(`✅ Option ${index} keeping existing icon: ${item.existingIconUrl}`);
           return option;
         }
 
+        // If it's a new file, don't include icon in JSON
         if (isNewFile) {
-          // New file uploaded - don't include icon in JSON, will be sent as file
           console.log(`📁 Option ${index} has new file: ${item.icon.name}`);
           return option;
         }
 
-        // No icon (new option without icon)
+        // No icon
         option.icon = null;
         console.log(`❌ Option ${index} has no icon`);
         return option;
