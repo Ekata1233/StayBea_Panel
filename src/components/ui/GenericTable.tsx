@@ -24,7 +24,7 @@ interface GenericTableProps {
   showEdit?: boolean;
   showDelete?: boolean;
   minWidth?: string;
-  isDeleting: string | null;
+   isDeleting: string | boolean | null;
 }
 
 const GenericTable = ({

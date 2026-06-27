@@ -35,7 +35,11 @@ const ModulesDropdown = () => {
   // ✅ Handle selection
   const handleSelect = (module: any) => {
     setSelectedModule(module);
-    localStorage.setItem("selectedModule", JSON.stringify(module));
+   localStorage.setItem("selectedModule", JSON.stringify(module));
+
+// 👇 Trigger custom event
+window.dispatchEvent(new Event("storage"));
+
     setOpen(false); // close dropdown
   };
 

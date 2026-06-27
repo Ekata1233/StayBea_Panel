@@ -1,11 +1,17 @@
-// context/LifestyleContext.tsx
+// context/HealthWellnessContext.tsx
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import axios from "axios";
 import { useFlowType } from "@/utils/flowType";
 
-// Types
+/* ================= TYPES ================= */
 interface Option {
   value: string;
   label: string;
@@ -21,7 +27,7 @@ interface Question {
   options: Option[];
 }
 
-interface LifestyleContextType {
+interface ContextType {
   data: Question[];
   loading: boolean;
   error: string | null;
@@ -30,20 +36,26 @@ interface LifestyleContextType {
   refreshData: (category: string, screen: string) => Promise<void>;
 }
 
-const LifestyleContext = createContext<LifestyleContextType | undefined>(undefined);
+const HealthWellnessContext = createContext<ContextType | undefined>(
+  undefined
+);
 
 const API_URL = "https://dating-app-backend-plum.vercel.app/api/question";
 
-export const LifestyleProvider = ({ children }: { children: ReactNode }) => {
+export const HealthWellnessProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const [data, setData] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const flowType = useFlowType();
 
-  const screen = "LIFESTYLE";
+  const screen = "HEALTH_WELLNESS";
 
-  /* 🔥 FLOWTYPE → CATEGORY MAPPING */
+  /* 🔥 FLOWTYPE → CATEGORY */
   const getCategory = (flow: string) => {
     switch (flow) {
       case "dating":
@@ -112,19 +124,18 @@ export const LifestyleProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  /* 🔥 AUTO FETCH LIKE FLOWTYPE */
+  /* 🔥 AUTO FETCH */
   useEffect(() => {
     if (!flowType) return;
 
     const category = getCategory(flowType);
-
     if (!category) return;
 
     refreshData(category, screen);
   }, [flowType]);
 
   return (
-    <LifestyleContext.Provider
+    <HealthWellnessContext.Provider
       value={{
         data,
         loading,
@@ -135,14 +146,16 @@ export const LifestyleProvider = ({ children }: { children: ReactNode }) => {
       }}
     >
       {children}
-    </LifestyleContext.Provider>
+    </HealthWellnessContext.Provider>
   );
 };
 
-export const useLifestyle = () => {
-  const context = useContext(LifestyleContext);
+export const useHealthWellness = () => {
+  const context = useContext(HealthWellnessContext);
   if (!context) {
-    throw new Error("useLifestyle must be used within LifestyleProvider");
+    throw new Error(
+      "useHealthWellness must be used within HealthWellnessProvider"
+    );
   }
   return context;
 };

@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import axios from "axios";
+import { useFlowType } from "@/utils/flowType"; // ✅ ADDED
 
 interface GenderImage {
   gender: string;
@@ -24,10 +25,9 @@ interface InterestedInContextType {
   data: InterestedIn[];
   loading: boolean;
   error: string | null;
-  fetchData: () => Promise<void>;
+  fetchData: (flowType: string) => Promise<void>; // ✅ UPDATED
   createData: (formData: FormData) => Promise<void>;
-   deleteData: (id: string) => Promise<void>;
-  
+  deleteData: (id: string) => Promise<void>;
 }
 
 const InterestedInContext = createContext<
@@ -43,14 +43,18 @@ export const InterestedInProvider = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const flowType = useFlowType(); // ✅ ADDED
+
   const API_URL =
     "https://dating-app-backend-plum.vercel.app/api/interested-in";
 
-  // ✅ GET ALL
-  const fetchData = async () => {
+  // ✅ GET ALL (WITH FLOWTYPE)
+  const fetchData = async (flowType: string) => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}/get-all`);
+      const res = await axios.get(
+        `${API_URL}/get-all?flowType=${flowType}` // ✅ UPDATED
+      );
       setData(res.data.data);
     } catch (err: any) {
       setError(err.message);
@@ -59,10 +63,12 @@ export const InterestedInProvider = ({
     }
   };
 
-  // ✅ CREATE
+  // ✅ CREATE (WITH FLOWTYPE REFRESH)
   const createData = async (formData: FormData) => {
     try {
       setLoading(true);
+
+      const flowType = formData.get("flowType") as string; // ✅ ADDED
 
       await axios.post(`${API_URL}/create`, formData, {
         headers: {
@@ -70,39 +76,39 @@ export const InterestedInProvider = ({
         },
       });
 
-      await fetchData(); // refresh after create
+      await fetchData(flowType); // ✅ UPDATED
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
-  // ✅ DELETE
+
+  // ✅ DELETE (NO CHANGE)
   const deleteData = async (id: string) => {
     try {
       setLoading(true);
 
       await axios.delete(`${API_URL}/delete/${id}`);
 
-      // remove from state instantly (optional optimization)
       setData((prev) => prev.filter((item) => item._id !== id));
-
-      // OR refresh from backend
-      // await fetchData();
-
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  // ✅ AUTO FETCH BASED ON FLOWTYPE
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (flowType) {
+      fetchData(flowType); // ✅ UPDATED
+    }
+  }, [flowType]);
 
   return (
     <InterestedInContext.Provider
-      value={{ data, loading, error, fetchData, createData,deleteData }}
+      value={{ data, loading, error, fetchData, createData, deleteData }}
     >
       {children}
     </InterestedInContext.Provider>

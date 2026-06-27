@@ -5,7 +5,6 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { useState, useMemo, useEffect } from "react";
 import { useSexualOrientation } from "@/context/SexualOrientationContext";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -177,7 +176,7 @@ useEffect(() => {
     });
 
     return rows;
-  }, [data]);
+  }, [data,flowType]);
 
   console.log("formatted data: ", formattedData);
 
@@ -352,7 +351,7 @@ useEffect(() => {
             columns={columns}
             data={formattedData}
             onDelete={handleDelete}
-            showActions={true}
+            showActions={false}
             showView={false}
             showEdit={false}
             showDelete={true}
