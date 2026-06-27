@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import FileInput from "@/components/ui/FileInput";
 import GenericTable from "@/components/ui/GenericTable";
-import { Loader2, Eye, Edit, X, Plus, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Loader2, Eye, Edit, X, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
@@ -19,8 +19,6 @@ interface OptionItem {
   sortOrder: number;
   isNew?: boolean;
   id?: string;
-  // Add flag to track if icon was removed
-  iconRemoved?: boolean;
 }
 
 interface FormData {
@@ -66,7 +64,6 @@ const DatePlanOptionPage = () => {
         iconPreview: null,
         sortOrder: 1,
         isNew: true,
-        iconRemoved: false,
       },
     ],
   });
@@ -111,7 +108,6 @@ const DatePlanOptionPage = () => {
           iconPreview: null,
           sortOrder: prev.options.length + 1,
           isNew: true,
-          iconRemoved: false,
         },
       ],
     }));
@@ -122,11 +118,6 @@ const DatePlanOptionPage = () => {
     if (formData.options.length <= 1) {
       toast.warning("At least one option is required");
       return;
-    }
-
-    // Revoke object URL if exists
-    if (formData.options[index].iconPreview) {
-      URL.revokeObjectURL(formData.options[index].iconPreview as string);
     }
 
     setFormData((prev) => ({
@@ -157,7 +148,6 @@ const DatePlanOptionPage = () => {
       } else if (field === "icon") {
         const file = value as File | null;
         if (file) {
-          // Revoke old preview if exists
           if (updatedOptions[index].iconPreview) {
             URL.revokeObjectURL(updatedOptions[index].iconPreview as string);
           }
@@ -165,10 +155,8 @@ const DatePlanOptionPage = () => {
             ...updatedOptions[index],
             icon: file,
             iconPreview: URL.createObjectURL(file),
-            iconRemoved: false, // Reset removed flag when new file is added
           };
         } else {
-          // If setting icon to null, don't revoke here - handle in removeIcon
           updatedOptions[index] = {
             ...updatedOptions[index],
             icon: null,
@@ -181,32 +169,6 @@ const DatePlanOptionPage = () => {
           [field]: value,
         };
       }
-      
-      return {
-        ...prev,
-        options: updatedOptions,
-      };
-    });
-  };
-
-  // NEW: Handle remove icon
-  const removeIcon = (index: number) => {
-    setFormData((prev) => {
-      const updatedOptions = [...prev.options];
-      
-      // Revoke object URL if exists
-      if (updatedOptions[index].iconPreview) {
-        URL.revokeObjectURL(updatedOptions[index].iconPreview as string);
-      }
-      
-      updatedOptions[index] = {
-        ...updatedOptions[index],
-        icon: null,
-        iconPreview: null,
-        iconRemoved: true, // Mark that icon was removed
-      };
-      
-      toast.info(`Icon removed for "${updatedOptions[index].label || 'option'}"`);
       
       return {
         ...prev,
@@ -240,7 +202,6 @@ const DatePlanOptionPage = () => {
           iconPreview: null,
           sortOrder: 1,
           isNew: true,
-          iconRemoved: false,
         },
       ],
     });
@@ -269,7 +230,6 @@ const DatePlanOptionPage = () => {
       iconPreview: opt.icon,
       sortOrder: opt.sortOrder,
       isNew: false,
-      iconRemoved: false,
     }));
 
     if (mappedOptions.length === 0) {
@@ -280,7 +240,6 @@ const DatePlanOptionPage = () => {
         iconPreview: null,
         sortOrder: 1,
         isNew: true,
-        iconRemoved: false,
       });
     }
 
@@ -339,64 +298,53 @@ const DatePlanOptionPage = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('type', formData.type.trim().toUpperCase());
 
-      // Prepare options array with icon handling
-      const optionsPayload = validOptions.map((item) => {
-        // If icon was explicitly removed, send icon: null
-        if (item.iconRemoved) {
-          return {
-            label: item.label.trim(),
-            value: item.value.trim(),
-            sortOrder: item.sortOrder,
-            icon: null, // Explicitly set to null to remove icon
-          };
-        }
-        
-        // If it's an existing icon URL (string), keep it
-        if (typeof item.icon === 'string' && item.icon.startsWith('http')) {
-          return {
-            label: item.label.trim(),
-            value: item.value.trim(),
-            sortOrder: item.sortOrder,
-            icon: item.icon,
-          };
-        }
-        
-        // If it's a File object, it will be uploaded separately
-        // Don't include icon in payload
-        return {
-          label: item.label.trim(),
-          value: item.value.trim(),
-          sortOrder: item.sortOrder,
-        };
-      });
+      // Prepare options array without files
+      const optionsPayload = validOptions.map((item) => ({
+        label: item.label.trim(),
+        value: item.value.trim(),
+        sortOrder: item.sortOrder,
+        // Don't include icon in options payload initially
+      }));
 
       // Add options as JSON string
       formDataToSend.append('options', JSON.stringify(optionsPayload));
 
-      // Append files to form data (only for new File objects)
+      // Track which options have files
+      let fileCount = 0;
+
+      // Append files to form data
       validOptions.forEach((item) => {
         if (item.icon instanceof File) {
+          // Upload file directly with field name 'icons'
           formDataToSend.append('icons', item.icon);
+          fileCount++;
         }
+        // If it's a string URL (existing icon), we keep it in the options
       });
 
+      // If there are files but count doesn't match, we need to handle
+      // But our backend validation will handle this
+
+      // Log what we're sending (for debugging)
       console.log('Sending form data:', {
         type: formData.type.trim().toUpperCase(),
         options: optionsPayload,
-        fileCount: validOptions.filter(o => o.icon instanceof File).length,
-        removedIcons: validOptions.filter(o => o.iconRemoved).map(o => o.label)
+        fileCount: fileCount,
+        files: validOptions.filter(o => o.icon instanceof File).map(o => o.label)
       });
 
       const url = `https://dating-app-backend-plum.vercel.app/api/date-now/create-options`;
       
       const response = await fetch(url, {
         method: "POST",
-        body: formDataToSend,
+        body: formDataToSend, // Send as form-data
+        // Don't set Content-Type header - browser will set it with boundary
       });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
+        // Handle validation errors
         if (result.errors && Array.isArray(result.errors)) {
           const errorMessages = result.errors.map((err: any) => 
             `${err.field}: ${err.message}`
@@ -660,35 +608,18 @@ const DatePlanOptionPage = () => {
                     />
 
                     <div className="md:col-span-1">
-                      <div className="flex items-end gap-2">
-                        <div className="flex-1">
-                          <FileInput
-                            label={`Icon ${index + 1} (Optional)`}
-                            accept="image/*"
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              handleOptionChange(
-                                index,
-                                "icon",
-                                e.target.files ? e.target.files[0] : null
-                              )
-                            }
-                            disabled={loading}
-                          />
-                        </div>
-                        {/* NEW: Remove Icon Button */}
-                        {(item.iconPreview || item.icon) && (
-                          <button
-                            type="button"
-                            onClick={() => removeIcon(index)}
-                            className="mb-1 flex items-center gap-1 rounded-lg bg-red-100 px-3 py-2 text-sm text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
-                            disabled={loading}
-                            title="Remove icon"
-                          >
-                            <Trash2 size={16} />
-                            <span className="hidden sm:inline">Remove</span>
-                          </button>
-                        )}
-                      </div>
+                      <FileInput
+                        label={`Icon ${index + 1} (Optional)`}
+                        accept="image/*"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handleOptionChange(
+                            index,
+                            "icon",
+                            e.target.files ? e.target.files[0] : null
+                          )
+                        }
+                        disabled={loading}
+                      />
                       <p className="mt-1 text-xs text-gray-500">
                         Images will be uploaded to ImageKit
                       </p>
@@ -711,24 +642,12 @@ const DatePlanOptionPage = () => {
                       />
                     </div>
 
-                    {/* Icon Preview with Remove Option */}
+                    {/* Icon Preview */}
                     {item.iconPreview && (
                       <div className="md:col-span-2">
-                        <div className="flex items-center justify-between">
-                          <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                            Icon Preview:
-                          </p>
-                          {/* Show remove button in preview section as well */}
-                          <button
-                            type="button"
-                            onClick={() => removeIcon(index)}
-                            className="flex items-center gap-1 rounded-lg bg-red-100 px-3 py-1 text-sm text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
-                            disabled={loading}
-                          >
-                            <Trash2 size={14} />
-                            Remove Icon
-                          </button>
-                        </div>
+                        <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                          Icon Preview:
+                        </p>
                         <div className="relative h-16 w-16">
                           <Image
                             src={item.iconPreview}
@@ -742,15 +661,6 @@ const DatePlanOptionPage = () => {
                             }}
                           />
                         </div>
-                      </div>
-                    )}
-
-                    {/* Show removed icon message */}
-                    {item.iconRemoved && (
-                      <div className="md:col-span-2">
-                        <p className="text-sm text-orange-600 dark:text-orange-400">
-                          ⚠️ Icon will be removed on update
-                        </p>
                       </div>
                     )}
                   </div>
