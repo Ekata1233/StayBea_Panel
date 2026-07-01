@@ -21,6 +21,7 @@ import { EducationProvider } from "@/context/EducationContext";
 import { WorkDetailsProvider } from "@/context/WorkDetailsContext";
 import { HealthWellnessProvider } from "@/context/HealthWellnessContext";
 import { QuestionDeleteProvider } from "@/context/questionDeleteContext";
+import { DateNowProvider } from "@/context/DateNowContext";
 
 export default function RootLayout({
   children,
@@ -56,7 +57,9 @@ export default function RootLayout({
                                     <WorkDetailsProvider>
                                       <HealthWellnessProvider>
                                         <QuestionDeleteProvider>
+                                          <DateNowProvider>
                                 {loading ? <Loader /> : children}
+                                </DateNowProvider>
                                 </QuestionDeleteProvider>
                                 </HealthWellnessProvider>
                                 </WorkDetailsProvider>

@@ -18,6 +18,7 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
+import { API_BASE_URL } from "@/utils/api";
 
 interface OptionItem {
   label: string;
@@ -86,7 +87,7 @@ const DatePlanOptionPage = () => {
     try {
       setFetching(true);
       const response = await fetch(
-        `https://dating-app-backend-plum.vercel.app/api/date-now/options`,
+        `${API_BASE_URL}/api/admin/date-now/options`,
       );
       const result = await response.json();
 
@@ -135,9 +136,11 @@ const DatePlanOptionPage = () => {
       return;
     }
 
-    if (formData.options[index].iconPreview && 
-        typeof formData.options[index].iconPreview === 'string' && 
-        formData.options[index].iconPreview?.startsWith('blob:')) {
+    if (
+      formData.options[index].iconPreview &&
+      typeof formData.options[index].iconPreview === "string" &&
+      formData.options[index].iconPreview?.startsWith("blob:")
+    ) {
       URL.revokeObjectURL(formData.options[index].iconPreview as string);
     }
 
@@ -166,15 +169,17 @@ const DatePlanOptionPage = () => {
         };
       } else if (field === "icon") {
         const file = value as File | null;
-        
+
         if (file) {
           // New file selected
-          if (currentOption.iconPreview && 
-              typeof currentOption.iconPreview === 'string' && 
-              currentOption.iconPreview.startsWith('blob:')) {
+          if (
+            currentOption.iconPreview &&
+            typeof currentOption.iconPreview === "string" &&
+            currentOption.iconPreview.startsWith("blob:")
+          ) {
             URL.revokeObjectURL(currentOption.iconPreview as string);
           }
-          
+
           updatedOptions[index] = {
             ...currentOption,
             icon: file,
@@ -218,9 +223,11 @@ const DatePlanOptionPage = () => {
 
   const resetForm = () => {
     formData.options.forEach((item) => {
-      if (item.iconPreview && 
-          typeof item.iconPreview === 'string' && 
-          item.iconPreview.startsWith('blob:')) {
+      if (
+        item.iconPreview &&
+        typeof item.iconPreview === "string" &&
+        item.iconPreview.startsWith("blob:")
+      ) {
         URL.revokeObjectURL(item.iconPreview);
       }
     });
@@ -250,9 +257,11 @@ const DatePlanOptionPage = () => {
     setEditType(row.type);
 
     formData.options.forEach((item) => {
-      if (item.iconPreview && 
-          typeof item.iconPreview === 'string' && 
-          item.iconPreview.startsWith('blob:')) {
+      if (
+        item.iconPreview &&
+        typeof item.iconPreview === "string" &&
+        item.iconPreview.startsWith("blob:")
+      ) {
         URL.revokeObjectURL(item.iconPreview);
       }
     });
@@ -351,11 +360,13 @@ const DatePlanOptionPage = () => {
 
         // CRITICAL FIX: Check if this is a File object (new upload)
         const isNewFile = item.icon instanceof File;
-        
+
         // CRITICAL FIX: If there's an existing icon URL and no new file, keep it
         if (item.existingIconUrl && !isNewFile) {
           option.icon = item.existingIconUrl;
-          console.log(`✅ Option ${index} keeping existing icon: ${item.existingIconUrl}`);
+          console.log(
+            `✅ Option ${index} keeping existing icon: ${item.existingIconUrl}`,
+          );
           return option;
         }
 
@@ -378,7 +389,9 @@ const DatePlanOptionPage = () => {
       validOptions.forEach((item, index) => {
         if (item.icon instanceof File) {
           formDataToSend.append(`icons[${index}]`, item.icon);
-          console.log(`📁 Appending file for option ${index} (${item.label}) as icons[${index}]`);
+          console.log(
+            `📁 Appending file for option ${index} (${item.label}) as icons[${index}]`,
+          );
         }
       });
 
@@ -386,13 +399,14 @@ const DatePlanOptionPage = () => {
       console.log("📤 Sending form data:");
       console.log("Type:", formData.type.trim().toUpperCase());
       console.log("Options Payload:", JSON.stringify(optionsPayload, null, 2));
-      console.log("Files being uploaded:", validOptions
-        .filter((o) => o.icon instanceof File)
-        .map((o, i) => `icons[${i}] -> ${o.label}`)
+      console.log(
+        "Files being uploaded:",
+        validOptions
+          .filter((o) => o.icon instanceof File)
+          .map((o, i) => `icons[${i}] -> ${o.label}`),
       );
 
-      const url = `https://dating-app-backend-plum.vercel.app/api/date-now/create-options`;
-
+      const url = `${API_BASE_URL}/api/admin/date-now/create-options`;
       const response = await fetch(url, {
         method: "POST",
         body: formDataToSend,
