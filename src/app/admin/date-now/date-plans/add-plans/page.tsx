@@ -63,7 +63,7 @@ const DatePlanOptionPage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editType, setEditType] = useState<string | null>(null);
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
-
+const [isDeleting] = useState<string | boolean | null>(null);
   const [formData, setFormData] = useState<FormData>({
     type: "",
     options: [
@@ -797,6 +797,7 @@ const DatePlanOptionPage = () => {
               showActions={true}
               showView={false}
               showEdit={false}
+               isDeleting={isDeleting}
               showDelete={false}
             />
 
