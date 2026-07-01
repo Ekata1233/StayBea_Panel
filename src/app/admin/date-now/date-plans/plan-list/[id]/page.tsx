@@ -224,7 +224,7 @@ const planId = params.id as string;
             {/* Description / Note */}
             {currentPlan.note && (
               <p className="mt-4 text-sm text-gray-600">
-                "{currentPlan.note}"
+                &quot;{currentPlan.note}&quot;
               </p>
             )}
 

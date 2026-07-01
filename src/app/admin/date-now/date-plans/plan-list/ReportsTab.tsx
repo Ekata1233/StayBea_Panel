@@ -243,7 +243,7 @@ export default function ReportsTab() {
           )}
           {searchQuery && (
             <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-              Search: "{searchQuery}"
+              Search: &quot;{searchQuery}&quot;
               <button onClick={() => setSearchQuery("")} className="ml-1 hover:text-gray-600">
                 <X className="h-3 w-3" />
               </button>
