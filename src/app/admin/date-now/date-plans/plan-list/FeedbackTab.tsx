@@ -603,7 +603,7 @@ export default function FeedbackTab() {
                 </div>
                 <div className="mt-1 pl-[52px]">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    "{review.comment}"
+                    &quot;{review.comment}&quot;
                   </p>
                 </div>
               </div>

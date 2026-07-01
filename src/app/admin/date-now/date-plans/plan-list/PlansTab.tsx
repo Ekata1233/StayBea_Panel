@@ -101,7 +101,7 @@ export default function PlansTab() {
   const [isCityAreaOpen, setIsCityAreaOpen] = useState(false);
   const [isVenueOpen, setIsVenueOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
-
+const [isDeleting, setIsDeleting] = useState<string | boolean | null>(null);
   // ---------- FETCH PLANS ON MOUNT ----------
   useEffect(() => {
     getPlans();
@@ -563,7 +563,7 @@ export default function PlansTab() {
           )}
           {searchQuery && (
             <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-              Search: "{searchQuery}"
+              Search: &quot;{searchQuery}&quot;
               <button
                 onClick={() => setSearchQuery("")}
                 className="ml-1 hover:text-gray-600"
@@ -584,6 +584,7 @@ export default function PlansTab() {
         showView={false}
         showEdit={false}
         showDelete={false}
+          isDeleting={isDeleting}
         onRowClick={(row) => handleView(row as PlanData)}
       />
 
