@@ -268,18 +268,17 @@ const DatePlanOptionPage = () => {
 
     const typeOptions = options.filter((opt) => opt.type === row.type);
 
-    const mappedOptions = typeOptions.map((opt) => ({
-      id: opt.id,
-      label: opt.label,
-      value: opt.value,
-      icon: opt.icon,
-      iconPreview: opt.icon, // Show existing icon as preview
-      sortOrder: opt.sortOrder,
-      isNew: false,
-      existingIconUrl: opt.icon, // Store the existing icon URL
-      hasIconChanged: false,
-    }));
-
+   const mappedOptions: OptionItem[] = typeOptions.map((opt): OptionItem => ({
+  id: opt.id,
+  label: opt.label,
+  value: opt.value,
+  icon: opt.icon,
+  iconPreview: opt.icon,
+  sortOrder: opt.sortOrder,
+  isNew: false,
+  existingIconUrl: opt.icon,
+  hasIconChanged: false,
+}));
     if (mappedOptions.length === 0) {
       mappedOptions.push({
         label: "",
@@ -371,10 +370,10 @@ const DatePlanOptionPage = () => {
         }
 
         // If it's a new file, don't include icon in JSON
-        if (isNewFile) {
-          console.log(`📁 Option ${index} has new file: ${item.icon.name}`);
-          return option;
-        }
+       if (item.icon instanceof File) {
+  console.log(`📁 Option ${index} has new file: ${item.icon.name}`);
+  return option;
+}
 
         // No icon
         option.icon = null;
