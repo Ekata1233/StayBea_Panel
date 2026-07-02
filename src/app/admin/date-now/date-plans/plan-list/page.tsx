@@ -4,7 +4,6 @@
 import React, { useState } from "react";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { Calendar, Flag, Star, Settings } from "lucide-react";
 import { useDateNow } from "@/context/DateNowContext";
 
@@ -82,13 +81,13 @@ export default function DatePlanListPage() {
   const renderContent = () => {
     switch (activeTab) {
       case "plans":
-        return <PlansTab plans={plans as any} />;
+  return <PlansTab />;
       case "reports":
-        return <ReportsTab reports={reportsData} />;
+        return <ReportsTab />;
       case "feedback":
-        return <FeedbackTab plans={plans as any} />;
+        return <FeedbackTab />;
       case "plansetup":
-        return <PlanSetupTab plans={plans as any} />;
+        return <PlanSetupTab />;
       default:
         return null;
     }
