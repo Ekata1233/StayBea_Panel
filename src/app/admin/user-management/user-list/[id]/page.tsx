@@ -28,22 +28,9 @@ import {
   FaUserCheck,
   
 } from "react-icons/fa";
+import { API_BASE_URL } from "@/utils/api";
 
-interface ExtendedUser extends IUser {
-  birth_date?: string;
-  gender?: string;
-  gender_option?: string;
-  height?: number;
-  looking_for?: string;
-  looking_for_option?: string;
-  onboarding_completed?: boolean;
-  onboarding_step?: string;
-  profile_completion?: number;
-  next_step?: string;
-  is_phone_verified?: boolean;
-  created_at?: string;
-  updated_at?: string;
-  badge_count?: number;
+export interface ExtendedUser extends IUser {
   hobbies?: string[];
   interests?: string[];
 }
@@ -53,12 +40,14 @@ const UserDetails = () => {
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  console.log("------------------------------------------User ID from params:", id);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         setLoading(true);
         const res = await fetch(
-          `https://dating-app-backend-plum.vercel.app/api/user/details/${id}`
+          `${API_BASE_URL}/api/user/details/${id}`
         );
         const data = await res.json();
         console.log("User Details:", data.data);
@@ -75,15 +64,15 @@ const UserDetails = () => {
     if (id) fetchUser();
   }, [id]);
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+ const formatDate = (date?: string | Date | null) => {
+  if (!date) return "N/A";
 
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
   const getInitials = (name?: string) => {
     if (!name) return "U";
     return name
@@ -94,7 +83,7 @@ const UserDetails = () => {
       .slice(0, 2);
   };
 
-  const getGenderDisplay = (gender?: string) => {
+  const getGenderDisplay = (gender?: string | null) => {
     if (!gender) return "N/A";
     const genders: Record<string, { label: string; icon: JSX.Element }> = {
       MEN: { label: "Male", icon: <FaVenusMars className="text-blue-400" /> },
@@ -104,7 +93,7 @@ const UserDetails = () => {
     return genders[gender] || { label: gender, icon: null };
   };
 
-  const getLookingForDisplay = (lookingFor?: string) => {
+  const getLookingForDisplay = (lookingFor?: string | null) => {
     if (!lookingFor) return "N/A";
     const options: Record<string, string> = {
       DATING: "Dating",
@@ -246,8 +235,8 @@ const UserDetails = () => {
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-3xl font-bold text-white">
-                      {getInitials(user.full_name)}
-                    </div>
+  {getInitials(user.full_name ?? undefined)}
+</div>
                   )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 rounded-full bg-green-500 p-1.5 ring-2 ring-white dark:ring-gray-800">
@@ -295,7 +284,9 @@ const UserDetails = () => {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Gender</p>
-                    <p className="font-semibold text-gray-800 dark:text-white">{genderInfo.label}</p>
+                    <p className="font-semibold text-gray-800 dark:text-white">
+  {typeof genderInfo === "string" ? genderInfo : genderInfo.label}
+</p>
                   </div>
                 </div>
               </div>
@@ -366,7 +357,9 @@ const UserDetails = () => {
 
                     <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700/30">
                       <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Gender</p>
-                      <p className="mt-1 font-medium text-gray-800 dark:text-white">{genderInfo.label}</p>
+                     <p className="font-semibold text-gray-800 dark:text-white">
+  {typeof genderInfo === "string" ? genderInfo : genderInfo.label}
+</p>
                     </div>
 
                     <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700/30">

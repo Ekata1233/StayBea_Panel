@@ -16,7 +16,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 import Image from "next/image";
 import { API_BASE_URL } from "@/utils/api";
 

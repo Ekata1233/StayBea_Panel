@@ -29,11 +29,15 @@ const Page = () => {
       header: "Name",
       accessor: "name",
       align: "left" as const,
-      render: (row: any) => (
+      render: (row: any) => {
+        console.log("---------------------Rendering Name Column for Row:", row);
+        return (
+        
         <span className="font-medium text-black dark:text-white">
-          {row.name || "-"}
+          {row.full_name || "-"}
         </span>
-      ),
+      )
+      },
     },
     {
       header: "Email",
