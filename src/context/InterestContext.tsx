@@ -10,7 +10,7 @@ import React, {
 import { API_BASE_URL } from "@/utils/api";
 
 const CATEGORY = "DATING";
-const SCREEN = "LIFESTYLE";
+const SCREEN = "THINGS_U_LOVE";
 
 // Minimum options required to create a field. MUST match your backend zod .min().
 export const MIN_OPTIONS = 2;
@@ -136,9 +136,9 @@ type Ctx = {
   ) => Promise<void>;
 };
 
-const LifeStyleContext = createContext<Ctx | null>(null);
+const InterestContext = createContext<Ctx | null>(null);
 
-export function LifeStyleProvider({
+export function InterestProvider({
   children,
 }: {
   children: React.ReactNode;
@@ -177,6 +177,7 @@ export function LifeStyleProvider({
   ) => {
     const cleaned = optionLabels.map((l) => l.trim()).filter(Boolean);
 
+    // Fail fast, before the network call, with a readable message.
     if (cleaned.length < MIN_OPTIONS) {
       throw new Error(
         `Please add at least ${MIN_OPTIONS} options before creating this field.`
@@ -341,7 +342,7 @@ export function LifeStyleProvider({
   };
 
   return (
-    <LifeStyleContext.Provider
+    <InterestContext.Provider
       value={{
         fields,
         loading,
@@ -356,16 +357,16 @@ export function LifeStyleProvider({
       }}
     >
       {children}
-    </LifeStyleContext.Provider>
+    </InterestContext.Provider>
   );
 }
 
-export function useLifeStyle() {
-  const ctx = useContext(LifeStyleContext);
+export function useInterest() {
+  const ctx = useContext(InterestContext);
 
   if (!ctx) {
     throw new Error(
-      "useLifeStyle must be used within LifeStyleProvider"
+      "useInterest must be used within InterestProvider"
     );
   }
 

@@ -9,6 +9,7 @@ import {
 } from "react";
 import axios from "axios";
 import { useFlowType } from "@/utils/flowType"; // ✅ ADDED
+import { API_BASE_URL } from "@/utils/api";
 
 interface GenderImage {
   gender: string;
@@ -46,7 +47,7 @@ export const InterestedInProvider = ({
   const flowType = useFlowType(); // ✅ ADDED
 
   const API_URL =
-    "https://dating-app-backend-plum.vercel.app/api/interested-in";
+    `${API_BASE_URL}/api/interested-in`;
 
   // ✅ GET ALL (WITH FLOWTYPE)
   const fetchData = async (flowType: string) => {

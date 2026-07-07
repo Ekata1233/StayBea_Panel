@@ -175,6 +175,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               label: "Health-Wellness",
               route: "/Onboarding/Health-Wellness",
             },
+            {
+              label: "Onboarding-Settings",
+              route: "/Onboarding/Onboarding-Settings",
+            },
           ],
         },
       ],

@@ -10,7 +10,6 @@ import { EmployeeProvider } from "@/context/EmployeeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { InterestedInProvider } from "@/context/InterestedInContext";
 import { SexualOrientationProvider } from "@/context/SexualOrientationContext";
-import { LifestyleProvider } from "@/context/LifestyleContext";
 import { RealYouMattersProvider } from "@/context/RealYouMattersContext";
 import { ThingsYouLoveProvider } from "@/context/ThingsYouLoveContext";
 import { LookingForProvider } from "@/context/LookingForContext";
@@ -22,6 +21,10 @@ import { WorkDetailsProvider } from "@/context/WorkDetailsContext";
 import { HealthWellnessProvider } from "@/context/HealthWellnessContext";
 import { QuestionDeleteProvider } from "@/context/questionDeleteContext";
 import { DateNowProvider } from "@/context/DateNowContext";
+import { IntentionProvider } from "@/context/DatingGoalsContext";
+import { EducationCareerProvider, ProfessionProvider } from "@/context/Educationcarrercontext";
+import { LifeStyleProvider } from "@/context/LifestyleContext";
+import { InterestProvider } from "@/context/InterestContext";
 
 export default function RootLayout({
   children,
@@ -46,10 +49,10 @@ export default function RootLayout({
               <AuthProvider>
                 <InterestedInProvider>
                   <SexualOrientationProvider>
-                    <LifestyleProvider>
+                 
                       <RealYouMattersProvider>
                         <ThingsYouLoveProvider>
-                         <LookingForProvider>
+                          <LookingForProvider>
                             <GenderProvider>
                               <UserProvider>
                                 <ReligionProvider>
@@ -58,19 +61,32 @@ export default function RootLayout({
                                       <HealthWellnessProvider>
                                         <QuestionDeleteProvider>
                                           <DateNowProvider>
-                                {loading ? <Loader /> : children}
-                                </DateNowProvider>
-                                </QuestionDeleteProvider>
-                                </HealthWellnessProvider>
-                                </WorkDetailsProvider>
-                                </EducationProvider>
+                                            <IntentionProvider>
+                                              <EducationCareerProvider>
+                                                <LifeStyleProvider>
+                                                  <InterestProvider>
+                                                    
+                                                {loading ? (
+                                                  <Loader />
+                                                ) : (
+                                                  children
+                                                )}
+                                                </InterestProvider>
+                                                </LifeStyleProvider>
+                                              </EducationCareerProvider>
+                                            </IntentionProvider>
+                                          </DateNowProvider>
+                                        </QuestionDeleteProvider>
+                                      </HealthWellnessProvider>
+                                    </WorkDetailsProvider>
+                                  </EducationProvider>
                                 </ReligionProvider>
                               </UserProvider>
                             </GenderProvider>
                           </LookingForProvider>
                         </ThingsYouLoveProvider>
                       </RealYouMattersProvider>
-                    </LifestyleProvider>
+                   
                   </SexualOrientationProvider>
                 </InterestedInProvider>
               </AuthProvider>
