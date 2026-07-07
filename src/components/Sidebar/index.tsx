@@ -131,51 +131,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
           route: "#",
           children: [
             {
-              label: "Looking-For",
-              route: "/Onboarding/Looking-For",
-            },
-            ...(flowType !== "Date to Marry"
-              ? [
-                  {
-                    label: "Interested In",
-                    route: "/Onboarding/Interested-In",
-                  },
-                ]
-              : []),
-            {
-              label: "Sexual Orientation",
-              route: "/Onboarding/Sexual-Orientation",
-            },
-            {
-              label: "Religion",
-              route: "/Onboarding/Religion",
-            },
-            {
-              label: "Education",
-              route: "/Onboarding/Education",
-            },
-            {
-              label: "Work-Details",
-              route: "/Onboarding/Work-Details",
-            },
-            {
-              label: "Lifestyle",
-              route: "/Onboarding/Lifestyle",
-            },
-            {
-              label: "Real-U-Matters",
-              route: "/Onboarding/Real-U-Matters",
-            },
-            {
-              label: "Things-U-Love",
-              route: "/Onboarding/Things-U-Love",
-            },
-
-            {
-              label: "Health-Wellness",
-              route: "/Onboarding/Health-Wellness",
-            },
-            {
               label: "Onboarding-Settings",
               route: "/Onboarding/Onboarding-Settings",
             },
