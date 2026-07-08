@@ -1,15 +1,13 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { FiX, FiPlus } from 'react-icons/fi'
-
-type Field = { 
-  id: string; 
-  emoji: string; 
-  label: string; 
-  tags: string[]; 
-  placeholder: string 
-}
+import React, { useState } from "react";
+import { FiX, FiPlus, FiLoader } from "react-icons/fi";
+import {
+  useFamilyProfile,
+  type CategoryGroup,
+  type MasterValue,
+  type FamilyIncome,
+} from "../../../../context/Familyprofilecontext";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -19,95 +17,112 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       </div>
       {children}
     </div>
-  )
+  );
 }
 
-function Chip({
-  label,
-  onRemove,
-  onEdit,
+function Toggle({
+  on,
+  onChange,
 }: {
-  label: string
-  onRemove: () => void
-  onEdit: (newValue: string) => void
+  on: boolean;
+  onChange: (v: boolean) => void;
 }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(label)
+  return (
+    <button
+      onClick={() => onChange(!on)}
+      title="Active"
+      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${
+        on ? "bg-rose-500" : "bg-gray-200"
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${
+          on ? "translate-x-4" : "translate-x-0.5"
+        }`}
+      />
+    </button>
+  );
+}
 
-  const startEdit = () => {
-    setDraft(label)
-    setEditing(true)
-  }
+function EditableText({
+  value,
+  onSave,
+  bold = false,
+}: {
+  value: string;
+  onSave: (v: string) => void;
+  bold?: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
 
   const commit = () => {
-    setEditing(false)
-    const v = draft.trim()
-    if (!v || v === label) {
-      setDraft(label)
-      return
+    setEditing(false);
+    const v = draft.trim();
+    if (!v || v === value) {
+      setDraft(value);
+      return;
     }
-    onEdit(v)
-  }
-
-  const cancel = () => {
-    setDraft(label)
-    setEditing(false)
-  }
+    onSave(v);
+  };
 
   if (editing) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-400 bg-rose-50 px-3 py-1.5 text-sm text-gray-700 ring-1 ring-rose-200">
-        <input
-          autoFocus
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onFocus={(e) => e.target.select()}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') commit()
-            if (e.key === 'Escape') cancel()
-          }}
-          className="bg-transparent text-gray-800 focus:outline-none"
-          style={{ width: `${Math.max(draft.length, 2)}ch` }}
-        />
-      </span>
-    )
+      <input
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onFocus={(e) => e.target.select()}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") {
+            setDraft(value);
+            setEditing(false);
+          }
+        }}
+        className={`border-b border-rose-300 bg-transparent text-gray-800 focus:outline-none ${
+          bold ? "font-semibold" : ""
+        }`}
+        style={{ width: `${Math.max(draft.length, 4)}ch` }}
+      />
+    );
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700">
-      <button
-        onClick={startEdit}
-        className="focus:outline-none"
-        title="Click to edit"
-      >
-        {label}
-      </button>
-      <button
-        onClick={onRemove}
-        className="text-gray-400 transition hover:text-gray-700"
-        aria-label={`Remove ${label}`}
-      >
-        <FiX size={14} />
-      </button>
-    </span>
-  )
+    <button
+      onClick={() => {
+        setDraft(value);
+        setEditing(true);
+      }}
+      className={`text-gray-800 hover:text-rose-600 ${bold ? "font-semibold" : ""}`}
+      title="Click to edit"
+    >
+      {value}
+    </button>
+  );
 }
 
-function AddInput({ placeholder, onAdd }: { placeholder: string; onAdd: (v: string) => void }) {
-  const [value, setValue] = useState('')
+function AddInput({
+  placeholder,
+  onAdd,
+}: {
+  placeholder: string;
+  onAdd: (v: string) => void;
+}) {
+  const [value, setValue] = useState("");
   const submit = () => {
-    const v = value.trim()
-    if (!v) return
-    onAdd(v)
-    setValue('')
-  }
+    const v = value.trim();
+    if (!v) return;
+    onAdd(v);
+    setValue("");
+  };
   return (
     <div className="inline-flex items-center rounded-full border border-gray-200 bg-white pl-3 pr-1 py-0.5">
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && submit()}
+        onKeyDown={(e) => e.key === "Enter" && submit()}
         placeholder={placeholder}
         className="w-32 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
       />
@@ -118,196 +133,285 @@ function AddInput({ placeholder, onAdd }: { placeholder: string; onAdd: (v: stri
         Add
       </button>
     </div>
-  )
+  );
 }
 
-function FieldRow({
-  field,
-  onRemoveTag,
-  onAddTag,
-  onEditTag,
-  onRemoveField,
+function ValueChip({
+  mv,
+  onRename,
+  onToggle,
+  onRemove,
 }: {
-  field: Field
-  onRemoveTag: (tag: string) => void
-  onAddTag: (v: string) => void
-  onEditTag: (oldTag: string, newTag: string) => void
-  onRemoveField: () => void
+  mv: MasterValue;
+  onRename: (value: string) => void;
+  onToggle: (active: boolean) => void;
+  onRemove: () => void;
 }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${
+        mv.active
+          ? "border-gray-200 bg-gray-50 text-gray-700"
+          : "border-gray-200 bg-gray-100 text-gray-400"
+      }`}
+    >
+      <EditableText value={mv.value} onSave={onRename} />
+      <Toggle on={mv.active} onChange={onToggle} />
+      <button
+        onClick={onRemove}
+        className="text-gray-400 transition hover:text-gray-700"
+        aria-label={`Remove ${mv.value}`}
+      >
+        <FiX size={14} />
+      </button>
+    </span>
+  );
+}
+
+function CategoryRow({
+  group,
+  onRun,
+}: {
+  group: CategoryGroup;
+  onRun: (fn: () => Promise<void>) => Promise<void>;
+}) {
+  const { updateCategory, deleteCategory, addValue, updateValue, deleteValue } =
+    useFamilyProfile();
+
   return (
     <div className="py-4">
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-base">{field.emoji}</span>
-        <span className="font-semibold text-gray-800">{field.label}</span>
+        <EditableText
+          value={group.title}
+          bold
+          onSave={(title) => onRun(() => updateCategory(group.id, { title }))}
+        />
+        <span className="font-mono text-[11px] text-gray-400">{group.code}</span>
         <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600">
-          {field.tags.length}
+          {group.values.length}
         </span>
         <button
-          onClick={onRemoveField}
+          onClick={() => {
+            if (confirm(`Delete category "${group.title}"?`)) {
+              onRun(() => deleteCategory(group.id));
+            }
+          }}
           className="ml-auto text-gray-300 transition hover:text-gray-500"
-          aria-label={`Remove ${field.label} field`}
+          aria-label={`Remove ${group.title}`}
         >
           <FiX size={14} />
         </button>
       </div>
+
       <div className="flex flex-wrap items-center gap-2">
-        {field.tags.map((tag) => (
-          <Chip
-            key={tag}
-            label={tag}
-            onRemove={() => onRemoveTag(tag)}
-            onEdit={(newValue) => onEditTag(tag, newValue)}
+        {group.values.map((mv) => (
+          <ValueChip
+            key={mv.id}
+            mv={mv}
+            onRename={(value) => onRun(() => updateValue(group.id, mv.id, { value }))}
+            onToggle={(active) => onRun(() => updateValue(group.id, mv.id, { active }))}
+            onRemove={() => onRun(() => deleteValue(group.id, mv.id))}
           />
         ))}
-        <AddInput placeholder={field.placeholder} onAdd={onAddTag} />
+        <AddInput
+          placeholder="e.g. Nuclear"
+          onAdd={(value) => onRun(() => addValue(group.id, value))}
+        />
       </div>
     </div>
-  )
+  );
+}
+
+function NewCategoryDraft({
+  onRun,
+}: {
+  onRun: (fn: () => Promise<void>) => Promise<void>;
+}) {
+  const { addCategory } = useFamilyProfile();
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [code, setCode] = useState("");
+
+  const reset = () => {
+    setTitle("");
+    setCode("");
+    setOpen(false);
+  };
+
+
+  
+}
+
+// Formats a min/max amount pair into a readable range for display.
+function formatRange(min: number | null, max: number | null): string {
+  if (min == null && max == null) return "";
+  if (min != null && max == null) return `${min}+`;
+  if (min == null && max != null) return `up to ${max}`;
+  return `${min}–${max}`;
+}
+
+// Strict salary label validator: only "₹11–24 LPA" style ranges pass.
+// Requires ₹, two numbers separated by an en-dash, and the LPA unit.
+function validateSalaryLabel(value: string): string | null {
+  const ok = /^₹\s*\d+\s*–\s*\d+\s*LPA$/.test(value.trim());
+  if (!ok) {
+    return 'Use format: ₹11–24 LPA (₹, min–max with en-dash "–", then LPA)';
+  }
+  const nums = (value.match(/\d+/g) || []).map(Number);
+  if (nums.length === 2 && nums[1] <= nums[0]) {
+    return "Max must be greater than min (e.g. ₹11–24 LPA)";
+  }
+  return null;
+}
+
+function IncomeChip({
+  income,
+  onRename,
+  onToggle,
+  onRemove,
+}: {
+  income: FamilyIncome;
+  onRename: (title: string) => void;
+  onToggle: (active: boolean) => void;
+  onRemove: () => void;
+}) {
+  const range = formatRange(income.minAmount, income.maxAmount);
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${
+        income.active
+          ? "border-gray-200 bg-gray-50 text-gray-700"
+          : "border-gray-200 bg-gray-100 text-gray-400"
+      }`}
+    >
+      <EditableText value={income.title} onSave={onRename} />
+      {/* {range && (
+        <span className="font-mono text-[11px] text-gray-400">{range}</span>
+      )} */}
+      <Toggle on={income.active} onChange={onToggle} />
+      <button
+        onClick={onRemove}
+        className="text-gray-400 transition hover:text-gray-700"
+        aria-label={`Remove ${income.title}`}
+      >
+        <FiX size={14} />
+      </button>
+    </span>
+  );
+}
+
+function IncomeRow({
+  onRun,
+}: {
+  onRun: (fn: () => Promise<void>) => Promise<void>;
+}) {
+  const { incomes, addIncome, updateIncome, deleteIncome } = useFamilyProfile();
+  const [title, setTitle] = useState("");
+
+  const submit = () => {
+    const err = validateSalaryLabel(title);
+    if (err) {
+      alert(err);
+      return;
+    }
+    if (incomes.some((i) => i.title.toLowerCase() === title.trim().toLowerCase())) {
+      alert(`"${title.trim()}" already exists.`);
+      return;
+    }
+    onRun(async () => {
+      await addIncome(title);
+      setTitle("");
+    });
+  };
+
+  return (
+    <div className="py-4">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-base">💰</span>
+        <span className="font-semibold text-gray-800">Family income</span>
+        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600">
+          {incomes.length}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {incomes.map((inc) => (
+          <IncomeChip
+            key={inc.id}
+            income={inc}
+            onRename={(t) => {
+              const err = validateSalaryLabel(t);
+              if (err) {
+                alert(err);
+                return;
+              }
+              onRun(() => updateIncome(inc.id, { title: t }));
+            }}
+            onToggle={(active) => onRun(() => updateIncome(inc.id, { active }))}
+            onRemove={() => onRun(() => deleteIncome(inc.id))}
+          />
+        ))}
+
+        <div className="inline-flex items-center rounded-full border border-gray-200 bg-white pl-3 pr-1 py-0.5">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+            placeholder="e.g. ₹11–24 LPA"
+            className="w-40 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
+          />
+          <button
+            onClick={submit}
+            className="rounded-full px-3 py-1 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function Family() {
-  const [fields, setFields] = useState<Field[]>([
-    // Family type section
-    { 
-      id: 'family_status', 
-      emoji: '👨‍👩‍👧‍👦', 
-      label: 'Family status', 
-      tags: ['Middle class', 'Upper middle class', 'Affluent', 'Self-made', 'Prefer not to say'], 
-      placeholder: 'e.g. Upper middle class' 
-    },
-    { 
-      id: 'family_type', 
-      emoji: '🏠', 
-      label: 'Family type', 
-      tags: ['Nuclear', 'Joint family', 'Extended', 'Independent'], 
-      placeholder: 'e.g. Nuclear' 
-    },
-    // Father section
-    { 
-      id: 'father_occupation', 
-      emoji: '👨', 
-      label: 'Father – occupation', 
-      tags: ['Business owner', 'Government service', 'Private sector', 'Retired', 'Doctor', 'Engineer', 'Farmer', 'Not disclosed'], 
-      placeholder: 'e.g. Retired banker' 
-    },
-    { 
-      id: 'father_organisation', 
-      emoji: '🏢', 
-      label: 'Father – organisation', 
-      tags: ['Government', 'Private company', 'Own business', 'Self-employed', 'Retired', 'Not disclosed'], 
-      placeholder: 'e.g. Bank of Mahara' 
-    },
-    // Mother section
-    { 
-      id: 'mother_occupation', 
-      emoji: '👩', 
-      label: 'Mother – occupation', 
-      tags: ['Homemaker', 'Working professional', 'Business owner', 'Government service', 'Teacher', 'Retired', 'Not disclosed'], 
-      placeholder: 'e.g. Homemaker' 
-    },
-    { 
-      id: 'mother_organisation', 
-      emoji: '🏢', 
-      label: 'Mother – organisation', 
-      tags: ['Not applicable', 'Private company', 'Government', 'Own business', 'Self-employed', 'Not disclosed'], 
-      placeholder: 'e.g. Former school' 
-    },
-    // Siblings section
-    { 
-      id: 'sibling_relation', 
-      emoji: '👫', 
-      label: 'Sibling – relation', 
-      tags: ['Only child', '1 younger sister', '1 younger brother', '1 older sister', '1 older brother', '2 or more siblings'], 
-      placeholder: 'e.g. 1 younger sister' 
-    },
-    { 
-      id: 'sibling_marital', 
-      emoji: '💍', 
-      label: 'Sibling – marital status', 
-      tags: ['Not applicable', 'Unmarried', 'Married', 'Engaged'], 
-      placeholder: 'e.g. Unmarried' 
-    },
-    { 
-      id: 'sibling_occupation', 
-      emoji: '💼', 
-      label: 'Sibling – occupation', 
-      tags: ['Not applicable', 'Studying', 'Working', 'Business', 'Homemaker'], 
-      placeholder: 'e.g. Studying' 
-    },
-    // Family home section
-    { 
-      id: 'family_home_city', 
-      emoji: '🏡', 
-      label: 'Family home – city', 
-      tags: ['Same city', 'Different city', 'Native town', 'Abroad'], 
-      placeholder: 'e.g. Pune' 
-    },
-    { 
-      id: 'native_place', 
-      emoji: '📍', 
-      label: 'Native place', 
-      tags: ['Same as current', 'Naashik', 'Nagpur', 'Kolhapur', 'Other city', 'Village / town'], 
-      placeholder: 'e.g. Naashik' 
-    },
-    // Family income
-    { 
-      id: 'family_income', 
-      emoji: '💰', 
-      label: 'Family income', 
-      tags: ['Under ₹10 L/year', '₹10–25 L/year', '₹25–40 L/year', '₹40 L–1 Cr/year', '₹1 Cr+/year', 'Prefer not to say'], 
-      placeholder: 'e.g. ₹25–40 L/year' 
-    },
-  ])
+  const { groups, loading, error, refetch } = useFamilyProfile();
 
-  const mutateField = (id: string, fn: (f: Field) => Field) =>
-    setFields((prev) => prev.map((f) => (f.id === id ? fn(f) : f)))
-
-  const addTag = (id: string, v: string) =>
-    mutateField(id, (f) => (f.tags.includes(v) ? f : { ...f, tags: [...f.tags, v] }))
-  
-  const removeTag = (id: string, v: string) =>
-    mutateField(id, (f) => ({ ...f, tags: f.tags.filter((t) => t !== v) }))
-
-  const editTag = (id: string, oldTag: string, newTag: string) =>
-    mutateField(id, (f) =>
-      f.tags.includes(newTag)
-        ? f // block duplicates
-        : { ...f, tags: f.tags.map((t) => (t === oldTag ? newTag : t)) }
-    )
-
-  const addField = () =>
-    setFields((prev) => [
-      ...prev,
-      { id: `field_${Date.now()}`, emoji: '🏷️', label: 'New field', tags: [], placeholder: 'e.g. Option' },
-    ])
-
-  const removeField = (id: string) =>
-    setFields((prev) => prev.filter((f) => f.id !== id))
+  const run = async (fn: () => Promise<void>) => {
+    try {
+      await fn();
+    } catch (e: any) {
+      alert(e.message);
+      refetch();
+    }
+  };
 
   return (
     <Section title="Family">
-      <div className="divide-y divide-gray-100">
-        {fields.map((field) => (
-          <FieldRow
-            key={field.id}
-            field={field}
-            onAddTag={(v) => addTag(field.id, v)}
-            onRemoveTag={(t) => removeTag(field.id, t)}
-            onEditTag={(oldTag, newTag) => editTag(field.id, oldTag, newTag)}
-            onRemoveField={() => removeField(field.id)}
-          />
-        ))}
-      </div>
-      <button
-        onClick={addField}
-        className="mt-3 flex items-center gap-2 rounded-xl border border-dashed border-gray-300 px-4 py-2.5 text-sm text-gray-400 transition hover:border-rose-200 hover:text-rose-600"
-      >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300">
-          <FiPlus size={14} />
-        </span>
-        Add a new field…
-        <span className="font-medium text-rose-600">+ Add field</span>
-      </button>
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center gap-2 py-8 text-sm text-gray-400">
+          <FiLoader className="animate-spin" /> Loading…
+        </div>
+      ) : groups.length === 0 ? (
+        <div className="py-8 text-center text-sm text-gray-400">
+          No categories yet.
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-100">
+          {groups.map((g) => (
+            <CategoryRow key={g.id} group={g} onRun={run} />
+          ))}
+
+          {/* Family income — now API-backed */}
+          <IncomeRow onRun={run} />
+        </div>
+      )}
+
+     
     </Section>
-  )
+  );
 }

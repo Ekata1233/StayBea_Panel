@@ -3,8 +3,7 @@ import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 
 export const metadata: Metadata = {
-  title:
-    "Stay-Bea | Datting App",
+  title: "Stay-Bea | Datting App",
   description: "This is Next.js Home for TailAdmin Dashboard Template",
 };
 
@@ -12,7 +11,9 @@ export default function Home() {
   return (
     <>
       <DefaultLayout>
-        <ECommerce />
+        <div className="p-4">
+          <ECommerce />
+        </div>
       </DefaultLayout>
     </>
   );
