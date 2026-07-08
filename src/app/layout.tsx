@@ -24,7 +24,7 @@ import { DateNowProvider } from "@/context/DateNowContext";
 import { IntentionProvider } from "@/context/DatingGoalsContext";
 import {
   EducationCareerProvider,
-  ProfessionProvider,
+  ProfessionProvider
 } from "@/context/Educationcarrercontext";
 import { LifeStyleProvider } from "@/context/LifestyleContext";
 import { InterestProvider } from "@/context/InterestContext";

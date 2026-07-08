@@ -49,7 +49,7 @@ function Page() {
         <div className="mx-auto max-w-8xl px-6 py-6">
           <div className="space-y-6">
             <CompletionRules />
-            <IdentityAccess />
+            {/* <IdentityAccess /> */}
             <DatingGoal />
             {/* <AboutBasics /> */}
             <EducationCarrer/>
