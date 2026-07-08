@@ -22,9 +22,13 @@ import { HealthWellnessProvider } from "@/context/HealthWellnessContext";
 import { QuestionDeleteProvider } from "@/context/questionDeleteContext";
 import { DateNowProvider } from "@/context/DateNowContext";
 import { IntentionProvider } from "@/context/DatingGoalsContext";
-import { EducationCareerProvider, ProfessionProvider } from "@/context/Educationcarrercontext";
+import {
+  EducationCareerProvider,
+  ProfessionProvider,
+} from "@/context/Educationcarrercontext";
 import { LifeStyleProvider } from "@/context/LifestyleContext";
 import { InterestProvider } from "@/context/InterestContext";
+import { FamilyProfileProvider } from "@/context/Familyprofilecontext";
 
 export default function RootLayout({
   children,
@@ -49,44 +53,43 @@ export default function RootLayout({
               <AuthProvider>
                 <InterestedInProvider>
                   <SexualOrientationProvider>
-                 
-                      <RealYouMattersProvider>
-                        <ThingsYouLoveProvider>
-                          <LookingForProvider>
-                            <GenderProvider>
-                              <UserProvider>
-                                <ReligionProvider>
-                                  <EducationProvider>
-                                    <WorkDetailsProvider>
-                                      <HealthWellnessProvider>
-                                        <QuestionDeleteProvider>
-                                          <DateNowProvider>
-                                            <IntentionProvider>
-                                              <EducationCareerProvider>
-                                                <LifeStyleProvider>
-                                                  <InterestProvider>
-                                                    
-                                                {loading ? (
-                                                  <Loader />
-                                                ) : (
-                                                  children
-                                                )}
+                    <RealYouMattersProvider>
+                      <ThingsYouLoveProvider>
+                        <LookingForProvider>
+                          <GenderProvider>
+                            <UserProvider>
+                              <ReligionProvider>
+                                <EducationProvider>
+                                  <WorkDetailsProvider>
+                                    <HealthWellnessProvider>
+                                      <QuestionDeleteProvider>
+                                        <DateNowProvider>
+                                          <IntentionProvider>
+                                            <EducationCareerProvider>
+                                              <LifeStyleProvider>
+                                                <InterestProvider>
+                                                  <FamilyProfileProvider>
+                                                    {loading ? (
+                                                      <Loader />
+                                                    ) : (
+                                                      children
+                                                    )}
+                                                  </FamilyProfileProvider>
                                                 </InterestProvider>
-                                                </LifeStyleProvider>
-                                              </EducationCareerProvider>
-                                            </IntentionProvider>
-                                          </DateNowProvider>
-                                        </QuestionDeleteProvider>
-                                      </HealthWellnessProvider>
-                                    </WorkDetailsProvider>
-                                  </EducationProvider>
-                                </ReligionProvider>
-                              </UserProvider>
-                            </GenderProvider>
-                          </LookingForProvider>
-                        </ThingsYouLoveProvider>
-                      </RealYouMattersProvider>
-                   
+                                              </LifeStyleProvider>
+                                            </EducationCareerProvider>
+                                          </IntentionProvider>
+                                        </DateNowProvider>
+                                      </QuestionDeleteProvider>
+                                    </HealthWellnessProvider>
+                                  </WorkDetailsProvider>
+                                </EducationProvider>
+                              </ReligionProvider>
+                            </UserProvider>
+                          </GenderProvider>
+                        </LookingForProvider>
+                      </ThingsYouLoveProvider>
+                    </RealYouMattersProvider>
                   </SexualOrientationProvider>
                 </InterestedInProvider>
               </AuthProvider>
