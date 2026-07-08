@@ -61,7 +61,7 @@ const GenericTable = ({
         <div className="min-w-[600px] sm:min-w-[800px] lg:min-w-full">
           {/* ================= HEADER ================= */}
           <div
-            className="grid rounded-md bg-gray-2 text-xs font-semibold dark:bg-meta-4 sm:text-sm"
+            className="grid rounded-md bg-gradient-to-r from-[#fdeaea] via-[#fdeeea] to-[#fdf1ea] text-xs font-semibold dark:bg-meta-4 sm:text-sm"
             style={{
               gridTemplateColumns: `repeat(${totalColumns}, minmax(120px, 1fr))`, // ✅ responsive columns
             }}

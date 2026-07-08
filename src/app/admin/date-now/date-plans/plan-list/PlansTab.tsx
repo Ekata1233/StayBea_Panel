@@ -317,7 +317,7 @@ const [isDeleting, setIsDeleting] = useState<string | boolean | null>(null);
     {
       header: "PLAN",
       accessor: "plan",
-      width: "150px",
+      width: "100px",
       align: "left" as const,
       render: (row: PlanData) => (
         <span className="text-sm text-gray-700 dark:text-gray-300">
@@ -356,7 +356,7 @@ const [isDeleting, setIsDeleting] = useState<string | boolean | null>(null);
     {
       header: "VISIBILITY",
       accessor: "visibility",
-      width: "100px",
+      width: "150px",
       align: "left" as const,
       render: (row: PlanData) => (
         <span
