@@ -372,6 +372,57 @@ function IncomeRow({
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Section grouping (design sequence) — display only                  */
+/* ------------------------------------------------------------------ */
+
+// Maps each flat category into one of the sections from the design, in order.
+// Match is by title prefix so it's robust to the "—" dash character.
+const SECTION_DEFS: {
+  title: string;
+  icon: string;
+  belongs: (t: string) => boolean;
+}[] = [
+  {
+    title: "Family type",
+    icon: "👨‍👩‍👧",
+    belongs: (t) => t.startsWith("family status") || t.startsWith("family type"),
+  },
+  { title: "Father", icon: "👴", belongs: (t) => t.startsWith("father") },
+  { title: "Mother", icon: "👩", belongs: (t) => t.startsWith("mother") },
+  { title: "Siblings", icon: "👫", belongs: (t) => t.startsWith("sibling") },
+  {
+    title: "Family home",
+    icon: "🏠",
+    belongs: (t) => t.startsWith("family home") || t.startsWith("native"),
+  },
+];
+
+function SectionCard({
+  icon,
+  title,
+  count,
+  children,
+}: {
+  icon: string;
+  title: string;
+  count: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="mb-1 flex items-center gap-2">
+        <span className="text-base">{icon}</span>
+        <span className="text-base font-bold text-gray-900">{title}</span>
+        <span className="text-xs font-medium text-rose-500">
+          {count} {count === 1 ? "part" : "parts"}
+        </span>
+      </div>
+      <div className="divide-y divide-gray-100">{children}</div>
+    </div>
+  );
+}
+
 export default function Family() {
   const { groups, loading, error, refetch } = useFamilyProfile();
 
@@ -383,6 +434,15 @@ export default function Family() {
       refetch();
     }
   };
+
+  // Group the flat category list into the design's sections, in order.
+  const norm = (s: string) => s.trim().toLowerCase();
+  const sections = SECTION_DEFS.map((def) => ({
+    ...def,
+    groups: groups.filter((g) => def.belongs(norm(g.title))),
+  }));
+  const matched = new Set(sections.flatMap((s) => s.groups.map((g) => g.id)));
+  const others = groups.filter((g) => !matched.has(g.id));
 
   return (
     <Section title="Family">
@@ -401,17 +461,38 @@ export default function Family() {
           No categories yet.
         </div>
       ) : (
-        <div className="divide-y divide-gray-100">
-          {groups.map((g) => (
-            <CategoryRow key={g.id} group={g} onRun={run} />
-          ))}
+        <div className="space-y-4">
+          {sections.map(
+            (s) =>
+              s.groups.length > 0 && (
+                <SectionCard
+                  key={s.title}
+                  icon={s.icon}
+                  title={s.title}
+                  count={s.groups.length}
+                >
+                  {s.groups.map((g) => (
+                    <CategoryRow key={g.id} group={g} onRun={run} />
+                  ))}
+                </SectionCard>
+              )
+          )}
 
-          {/* Family income — now API-backed */}
-          <IncomeRow onRun={run} />
+          {/* Any categories that didn't match a known section */}
+          {others.length > 0 && (
+            <SectionCard icon="📁" title="Other" count={others.length}>
+              {others.map((g) => (
+                <CategoryRow key={g.id} group={g} onRun={run} />
+              ))}
+            </SectionCard>
+          )}
+
+          {/* Family income — its own card (IncomeRow renders its own header) */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <IncomeRow onRun={run} />
+          </div>
         </div>
       )}
-
-     
     </Section>
   );
 }

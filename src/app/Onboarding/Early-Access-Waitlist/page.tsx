@@ -3,6 +3,13 @@
 import DefaultLayout from '@/components/Layouts/DefaultLayout'
 import GenericTable from '@/components/ui/GenericTable'
 import React, { useState, useEffect } from 'react'
+// Adjust this path if you place the context elsewhere (e.g. '@/context/WaitlistContext').
+import {
+  WaitlistProvider,
+  useWaitlist,
+  computeFinalPrice,
+  computeTotalBenefits,
+} from '../../../context/Waitlistcontext'
 
 /* ------------------------------------------------------------------ */
 /*  Types + data                                                       */
@@ -33,15 +40,6 @@ type Member = {
 // not an index, so the serial has to live on the data).
 type Row = Member & { sr: number }
 
-// Shape of the launch configuration edited in the popup.
-type LaunchConfig = {
-  description: string
-  waitlistEnabled: boolean
-  appLaunched: boolean
-  launchDate: string // ISO string in UTC, e.g. "2026-08-01T10:00:00.000Z"
-  waitlistPrice: number // in rupees (matches your JSON; convert to paise at the API boundary)
-}
-
 // Replace this with data from your API. Stats below are derived, not hardcoded.
 const members: Member[] = [
   { id: 1, name: 'Aanya Mehta', age: 24, gender: 'Woman', wlId: 'WL-2041', city: 'Pune', phone: '+91 98220 41007', email: 'aanya.m••@gmail.com', paid: 300, method: 'UPI', txnId: 'PAY-8841207', joinedAgo: '2 days ago', joinedAt: '6 Jul 2026, 21:14', source: 'INSTA' },
@@ -60,7 +58,7 @@ const members: Member[] = [
 /*  Small helpers                                                      */
 /* ------------------------------------------------------------------ */
 
-const rupee = (n: number) => `₹${n.toLocaleString('en-IN')}`
+const rupee = (n: number) => `₹${(Number(n) || 0).toLocaleString('en-IN')}`
 
 // Fallback avatar shown when a member has no photo of their own.
 const DEFAULT_AVATAR =
@@ -94,7 +92,7 @@ function MethodBadge({ method }: { method: Method }) {
   )
 }
 
-/* ---------- Launch-config helpers ---------- */
+/* ---------- Launch-config VIEW helpers (formatting only) ---------- */
 
 // Format remaining milliseconds as "23d 14h 22m 05s".
 function formatCountdown(ms: number): string {
@@ -150,6 +148,41 @@ function Toggle({
   )
 }
 
+// Labeled number input with an optional prefix (₹ for money, none for counts).
+function NumberField({
+  label,
+  value,
+  onChange,
+  prefix,
+}: {
+  label: string
+  value: number
+  onChange: (v: number) => void
+  prefix?: string
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-gray-800">{label}</label>
+      <div className="relative">
+        {prefix && (
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+            {prefix}
+          </span>
+        )}
+        <input
+          type="number"
+          min={0}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value) || 0)}
+          className={`w-full rounded-lg border border-gray-200 bg-white py-2 pr-3 text-sm text-gray-700 outline-none focus:border-rose-300 ${
+            prefix ? 'pl-7' : 'pl-3'
+          }`}
+        />
+      </div>
+    </div>
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /*  Inline icons (no external icon dep required)                       */
 /* ------------------------------------------------------------------ */
@@ -175,6 +208,16 @@ const Icon = {
       <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
     </svg>
   ),
+  Coin: (p: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <circle cx="12" cy="12" r="9" /><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4" />
+    </svg>
+  ),
+  Gift: (p: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+    </svg>
+  ),
   Download: (p: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" />
@@ -190,13 +233,23 @@ const Icon = {
       <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   ),
+  Trash: (p: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  ),
+  Plus: (p: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  ),
 }
 
 /* ------------------------------------------------------------------ */
-/*  Page                                                               */
+/*  Page (consumer)                                                    */
 /* ------------------------------------------------------------------ */
 
-function Page() {
+function WaitlistPage() {
   // Derived stats — stay in sync with `members` automatically.
   const totalJoined = members.length
   const women = members.filter((m) => m.gender === 'Woman').length
@@ -204,16 +257,24 @@ function Page() {
   const collected = members.reduce((sum, m) => sum + m.paid, 0)
   const [isDeleting, setIsDeleting] = useState<string | boolean | null>(null);
 
-  // ----- Launch-config popup state -----
+  // Launch-config data + actions come from context. Modal + ticker stay local (view-only).
+  const {
+    launchConfig,
+    updateLaunchConfig,
+    addPerk,
+    updatePerk,
+    removePerk,
+    loading: launchLoading,
+    saving: launchSaving,
+    error: launchError,
+    saveLaunchConfig,
+  } = useWaitlist()
+
   const [showLaunchModal, setShowLaunchModal] = useState(false)
-  const [launchConfig, setLaunchConfig] = useState<LaunchConfig>({
-    description:
-      'Launch configuration for the application. Controls waitlist availability, app launch status, launch date, and waitlist registration fee.',
-    waitlistEnabled: true,
-    appLaunched: false,
-    launchDate: '2026-08-01T10:00:00.000Z',
-    waitlistPrice: 300,
-  })
+
+  // Derived money fields (never free-typed) — computed from the editable inputs.
+  const finalPrice = computeFinalPrice(launchConfig)
+  const totalBenefitsValue = computeTotalBenefits(launchConfig.perks)
 
   // `now` stays null until mount to avoid an SSR/hydration mismatch on the countdown.
   const [now, setNow] = useState<number | null>(null)
@@ -246,11 +307,9 @@ function Page() {
         ? 'Launch time reached'
         : `Launching in ${formatCountdown(msLeft)}`
 
-  const handleSaveLaunch = () => {
-    // TODO: PATCH your launch-config endpoint with `launchConfig`.
-    // Remember: if waitlistPrice feeds the Razorpay/subscription pipeline, convert rupees -> paise (x100).
-    console.log('Save launch config', launchConfig)
-    setShowLaunchModal(false)
+  const handleSaveLaunch = async () => {
+    const ok = await saveLaunchConfig()
+    if (ok) setShowLaunchModal(false)
   }
 
   // Attach a display serial for the "#" column.
@@ -302,14 +361,14 @@ function Page() {
     {
       header: '#',
       accessor: 'sr',
-      width: '56px',
+      width: '0px',
       align: 'left' as const,
       render: (row: Row) => <span className="text-gray-400">{row.sr}</span>,
     },
     {
       header: 'MEMBER',
       accessor: 'name',
-      width: '220px',
+      width: '250px',
       align: 'left' as const,
       render: (row: Row) => (
         <div className="flex items-center gap-3">
@@ -326,7 +385,7 @@ function Page() {
     {
       header: 'CITY',
       accessor: 'city',
-      width: '120px',
+      width: '150px',
       align: 'left' as const,
       render: (row: Row) => <span className="text-gray-700">{row.city}</span>,
     },
@@ -389,10 +448,10 @@ function Page() {
     {
       header: 'ACTIONS',
       accessor: 'actions',
-      width: '150px',
+      width: '80px',
       align: 'center' as const,
       render: (row: Row) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex ">
           <button
             onClick={(e) => {
               e.stopPropagation()
@@ -402,15 +461,7 @@ function Page() {
           >
             Notify
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handleRefund(row)
-            }}
-            className="rounded-lg bg-rose-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-600"
-          >
-            Refund
-          </button>
+         
         </div>
       ),
     },
@@ -528,20 +579,20 @@ function Page() {
           {/* backdrop */}
           <div className="absolute inset-0 bg-black/40" />
 
-          {/* dialog */}
+          {/* dialog — capped height with a scrollable body */}
           <div
-            className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl"
+            className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* header */}
-            <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
+            <div className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50 text-rose-500">
                   <Icon.Clock className="h-5 w-5" />
                 </span>
                 <div>
                   <h3 className="text-base font-semibold text-gray-900">Launch configuration</h3>
-                  <p className="text-xs text-gray-500">Waitlist, launch date &amp; registration fee</p>
+                  <p className="text-xs text-gray-500">Waitlist, pricing, benefits &amp; launch date</p>
                 </div>
               </div>
               <button
@@ -553,8 +604,20 @@ function Page() {
               </button>
             </div>
 
-            {/* body */}
-            <div className="space-y-5 px-6 py-5">
+            {/* body (scrolls) */}
+            <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+              {/* API error / status banner */}
+              {launchError && (
+                <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                  {launchError}
+                </div>
+              )}
+              {launchLoading && !launchError && (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                  Loading saved configuration…
+                </div>
+              )}
+
               {/* Live status line */}
               <div className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
                 <span className="text-sm text-gray-500">Status</span>
@@ -582,7 +645,7 @@ function Page() {
                 </div>
                 <Toggle
                   checked={launchConfig.waitlistEnabled}
-                  onChange={(v) => setLaunchConfig((c) => ({ ...c, waitlistEnabled: v }))}
+                  onChange={(v) => updateLaunchConfig({ waitlistEnabled: v })}
                 />
               </div>
 
@@ -594,7 +657,7 @@ function Page() {
                 </div>
                 <Toggle
                   checked={launchConfig.appLaunched}
-                  onChange={(v) => setLaunchConfig((c) => ({ ...c, appLaunched: v }))}
+                  onChange={(v) => updateLaunchConfig({ appLaunched: v })}
                 />
               </div>
 
@@ -607,7 +670,7 @@ function Page() {
                   type="datetime-local"
                   value={isoToLocalInput(launchConfig.launchDate)}
                   onChange={(e) =>
-                    setLaunchConfig((c) => ({ ...c, launchDate: localInputToIso(e.target.value) }))
+                    updateLaunchConfig({ launchDate: localInputToIso(e.target.value) })
                   }
                   className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-rose-300"
                 />
@@ -616,55 +679,168 @@ function Page() {
                 </p>
               </div>
 
-              {/* Waitlist price */}
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-800">
-                  Waitlist price (₹)
-                </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={launchConfig.waitlistPrice}
-                    onChange={(e) =>
-                      setLaunchConfig((c) => ({
-                        ...c,
-                        waitlistPrice: Number(e.target.value) || 0,
-                      }))
-                    }
-                    className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-7 pr-3 text-sm text-gray-700 outline-none focus:border-rose-300"
+              {/* -------- Pricing -------- */}
+              <div className="border-t border-gray-100 pt-5">
+                <div className="mb-3 text-sm font-semibold text-gray-900">Pricing</div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <NumberField
+                    label="Original price (₹)"
+                    prefix="₹"
+                    value={launchConfig.originalPrice}
+                    onChange={(v) => updateLaunchConfig({ originalPrice: v })}
+                  />
+                  <NumberField
+                    label="Discount (%)"
+                    prefix="%"
+                    value={launchConfig.discountAmount}
+                    onChange={(v) => updateLaunchConfig({ discountAmount: v })}
+                  />
+                </div>
+
+                {/* Final price — computed, read-only */}
+                <div className="mt-3 flex items-end justify-between rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wide text-gray-500">Final price</div>
+                    <div className="flex items-center gap-2">
+                      {launchConfig.discountAmount > 0 && (
+                        <span className="text-sm text-gray-400 line-through">
+                          {rupee(launchConfig.originalPrice)}
+                        </span>
+                      )}
+                      <span className="text-2xl font-bold text-rose-600">{rupee(finalPrice)}</span>
+                    </div>
+                  </div>
+                  {launchConfig.discountAmount > 0 && (
+                    <span className="rounded-full bg-rose-500 px-2.5 py-1 text-xs font-semibold text-white">
+                      {launchConfig.discountAmount}% off
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Final price is calculated automatically (original − discount %).
+                </p>
+
+                {/* Welcome coins */}
+                <div className="mt-3">
+                  <NumberField
+                    label="Welcome coins"
+                    value={launchConfig.welcomeCoins}
+                    onChange={(v) => updateLaunchConfig({ welcomeCoins: v })}
                   />
                 </div>
               </div>
 
+              {/* -------- Launch benefits (editable perks) -------- */}
+              <div className="border-t border-gray-100 pt-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                    <Icon.Gift className="h-4 w-4 text-rose-500" />
+                    Launch benefits
+                  </div>
+                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+                    Worth {rupee(totalBenefitsValue)}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {launchConfig.perks.map((perk, i) => (
+                    <div key={i} className="rounded-lg border border-gray-200 p-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={perk.title}
+                          onChange={(e) => updatePerk(i, { title: e.target.value })}
+                          placeholder="Perk title"
+                          className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-rose-300"
+                        />
+                        <div className="relative w-28 shrink-0">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                            ₹
+                          </span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={perk.value}
+                            onChange={(e) => updatePerk(i, { value: Number(e.target.value) || 0 })}
+                            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-7 pr-3 text-sm text-gray-700 outline-none focus:border-rose-300"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removePerk(i)}
+                          className="shrink-0 rounded-lg p-2 text-gray-400 hover:bg-rose-50 hover:text-rose-500"
+                          aria-label={`Remove ${perk.title || 'perk'}`}
+                        >
+                          <Icon.Trash className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={perk.subtitle}
+                        onChange={(e) => updatePerk(i, { subtitle: e.target.value })}
+                        placeholder="Subtitle (e.g. 1/week • 4 a month)"
+                        className="mt-2 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-rose-300"
+                      />
+                    </div>
+                  ))}
+
+                  {launchConfig.perks.length === 0 && (
+                    <p className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-400">
+                      No perks yet. Add one below.
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addPerk}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-2.5 text-sm font-medium text-gray-600 hover:border-rose-300 hover:text-rose-600"
+                >
+                  <Icon.Plus className="h-4 w-4" />
+                  Add perk
+                </button>
+
+                <div className="mt-3 flex items-center justify-between rounded-lg bg-emerald-50 px-4 py-3">
+                  <span className="flex items-center gap-2 text-sm font-medium text-emerald-700">
+                    <Icon.Coin className="h-4 w-4" />
+                    Total benefits value
+                  </span>
+                  <span className="text-base font-bold text-emerald-700">{rupee(totalBenefitsValue)}</span>
+                </div>
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Add, edit or remove perks. Set a value of ₹0 for a free / bonus perk. The total
+                  updates automatically.
+                </p>
+              </div>
+
               {/* Description */}
-              <div>
+              <div className="border-t border-gray-100 pt-5">
                 <label className="mb-1.5 block text-sm font-medium text-gray-800">Description</label>
                 <textarea
                   rows={3}
                   value={launchConfig.description}
-                  onChange={(e) => setLaunchConfig((c) => ({ ...c, description: e.target.value }))}
+                  onChange={(e) => updateLaunchConfig({ description: e.target.value })}
                   className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-rose-300"
                 />
               </div>
             </div>
 
             {/* footer */}
-            <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
+            <div className="flex flex-shrink-0 items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
               <button
                 onClick={() => setShowLaunchModal(false)}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                disabled={launchSaving}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveLaunch}
-                className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-600"
+                disabled={launchSaving || launchLoading}
+                className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Save changes
+                {launchSaving ? 'Saving…' : 'Save changes'}
               </button>
             </div>
           </div>
@@ -691,4 +867,14 @@ function StatCard({
   )
 }
 
-export default Page
+/* ------------------------------------------------------------------ */
+/*  Default export — wraps the page in the WaitlistProvider            */
+/* ------------------------------------------------------------------ */
+
+export default function Page() {
+  return (
+    <WaitlistProvider>
+      <WaitlistPage />
+    </WaitlistProvider>
+  )
+}

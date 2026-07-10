@@ -125,7 +125,7 @@ function createCrudContext(resourcePath: string) {
 }
 
 /* ── Profession: {API_BASE_URL}/api/profession ─────────────────────── */
-const profession = createCrudContext('/api/professions')
+const profession = createCrudContext('/api/admin/profession')
 export const ProfessionProvider = profession.Provider
 export const useProfession = () => profession.useCtx('useProfession')
 
