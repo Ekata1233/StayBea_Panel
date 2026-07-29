@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useFlowType } from "@/utils/flowType";
+import { API_BASE_URL } from "@/utils/api";
 
 interface Option {
   label: string;
@@ -33,7 +34,7 @@ export const SexualOrientationProvider = ({
   const flowType = useFlowType(); 
   const [loading, setLoading] = useState(false);
   const API_BASE =
-    "https://dating-app-backend-plum.vercel.app/api/sexual-orientation";
+    `${API_BASE_URL}/api/sexual-orientation`;
 
   /* ================= FETCH ================= */
 const fetchData = async () => {

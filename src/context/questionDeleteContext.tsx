@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/utils/api";
 import React, { createContext, useContext, useState } from "react";
 
 /* ================= TYPES ================= */
@@ -27,7 +28,7 @@ export const QuestionDeleteProvider = ({
       setLoading(true);
 
       const res = await fetch(
-        `https://dating-app-backend-plum.vercel.app/api/question/delete/${id}`,
+        `${API_BASE_URL}/api/question/delete/${id}`,
         {
           method: "DELETE",
           headers: {

@@ -1,0 +1,1131 @@
+'use client'
+
+import DefaultLayout from '@/components/Layouts/DefaultLayout'
+import { useParams, useRouter } from 'next/navigation'
+import React from 'react'
+
+/* ---------------------------------- icons --------------------------------- */
+type IconProps = { className?: string }
+
+const SearchIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
+  </svg>
+)
+
+const BellIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14.857 17.082a24 24 0 0 0 5.454-1.31A8.97 8.97 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.97 8.97 0 0 1-2.312 6.022 24 24 0 0 0 5.455 1.31m5.714 0a3 3 0 1 1-5.714 0m5.714 0a24 24 0 0 1-5.714 0" />
+  </svg>
+)
+
+const QuestionIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9.75" />
+    <path d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75" />
+    <path d="M12 17.25h.008v.008H12z" />
+  </svg>
+)
+
+const ChevronLeftIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="m15 18-6-6 6-6" />
+  </svg>
+)
+
+const LockIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+  </svg>
+)
+
+const TagIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+    <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+  </svg>
+)
+
+const ChartIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M8 16v-5M12 16V8m4 8v-3" />
+  </svg>
+)
+
+const BanIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
+    <circle cx="12" cy="12" r="9" />
+    <path d="m5.7 5.7 12.6 12.6" />
+  </svg>
+)
+
+const CardIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <path d="M2 10h20" />
+  </svg>
+)
+
+const StarIcon = ({ className, filled }: IconProps & { filled?: boolean }) => (
+  <svg className={className} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  </svg>
+)
+
+/* ---------------------------------- data ---------------------------------- */
+type Quota = {
+  key: string
+  emoji: string
+  label: string
+  unit: string
+  value: number | 'unlimited'
+}
+
+type PricingTerm = {
+  key: string
+  label: string
+  months: number | 'forever'
+  rate: number | ''
+  highlighted?: boolean
+  offered: boolean
+}
+
+type FeatureItem = {
+  key: string
+  label: string
+  sub?: string
+}
+
+type FeatureGroup = {
+  key: string
+  emoji: string
+  title: string
+  items: FeatureItem[]
+}
+
+type Accent = {
+  toggleOn: string
+  groupBtn: string
+  headerBtn: string
+  headerPill: string
+}
+
+type PlanEditData = {
+  name: string
+  badge?: string
+  tagline: string
+  from: string
+  active: string
+  pool: string
+  poolLocked?: boolean
+  featuresLive: string
+  heroGradient: string
+  visibilityRule: string
+  wallRule: string
+  accent: Accent
+  pricing: PricingTerm[]
+  featureCatalog: FeatureGroup[]
+  enabledFeatures: string[]
+  quotas: Quota[]
+}
+
+const WALL_RULE =
+  'pools never mix — Free & Premium members never see VIP / Elite, and chat & events never cross tracks.'
+
+const ROSE_ACCENT: Accent = {
+  toggleOn: 'bg-rose-500',
+  groupBtn: 'border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100',
+  headerBtn: 'bg-rose-500 hover:bg-rose-600',
+  headerPill: 'bg-rose-50 text-rose-600',
+}
+
+const AMBER_ACCENT: Accent = {
+  toggleOn: 'bg-amber-500',
+  groupBtn: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
+  headerBtn: 'bg-amber-500 hover:bg-amber-600',
+  headerPill: 'bg-amber-50 text-amber-700',
+}
+
+const DARK_ACCENT: Accent = {
+  toggleOn: 'bg-gray-900',
+  groupBtn: 'border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200',
+  headerBtn: 'bg-gray-900 hover:bg-black',
+  headerPill: 'bg-gray-100 text-gray-800',
+}
+
+/* ---- Premium+ catalog ---- */
+const PREMIUM_CATALOG: FeatureGroup[] = [
+  {
+    key: 'match-discovery',
+    emoji: '❤️',
+    title: 'Match & discovery',
+    items: [
+      { key: 'unlimited-likes', label: 'Unlimited likes', sub: 'No daily cap on swipes' },
+      { key: 'ai-compat', label: 'AI Compatibility Score', sub: 'See match % before liking' },
+      { key: 'who-liked', label: 'See who liked you', sub: 'Secret Admirers revealed' },
+      { key: 'adv-filters', label: 'Advanced preference filters' },
+      { key: 'rewind', label: 'Rewind last swipe' },
+      { key: 'priority-visibility', label: 'Priority visibility' },
+    ],
+  },
+  {
+    key: 'chat-video',
+    emoji: '💬',
+    title: 'Chat & video calls',
+    items: [
+      { key: 'voice-video', label: 'Voice & video calls', sub: 'In-app secure calling' },
+      { key: 'unlimited-chat', label: 'Unlimited chat requests' },
+      { key: 'read-receipts', label: 'Read receipts' },
+      { key: 'ai-icebreakers', label: 'AI icebreakers' },
+      { key: 'gifts', label: 'Send & receive gifts & compliments' },
+    ],
+  },
+  {
+    key: 'trust-verification',
+    emoji: '🛡️',
+    title: 'Trust & verification',
+    items: [
+      { key: 'id-verify', label: 'ID verification badge' },
+      { key: 'edu-verify', label: 'Education verification' },
+      { key: 'prof-verify', label: 'Profession verification' },
+      { key: 'trust-score', label: 'Trust score boost' },
+      { key: 'authenticity', label: 'Profile authenticity checks' },
+    ],
+  },
+  {
+    key: 'privacy',
+    emoji: '🔒',
+    title: 'Privacy',
+    items: [
+      { key: 'safeface', label: 'SafeFace photo privacy', sub: 'AI avatar until you reveal' },
+      { key: 'ai-avatar', label: 'AI Avatar Studio' },
+      { key: 'incognito', label: 'Incognito browsing' },
+    ],
+  },
+  {
+    key: 'status-badges',
+    emoji: '👑',
+    title: 'Status & badges',
+    items: [
+      { key: 'premium-badge', label: 'Premium+ profile badge' },
+      { key: 'serious-tag', label: '"Serious intent" tag' },
+      { key: 'top-profile', label: 'Top profile placement' },
+      { key: 'fast-reply', label: 'Fast-reply badge' },
+      { key: 'marriage-intent', label: 'Marriage intent badge' },
+    ],
+  },
+  {
+    key: 'best-life-events',
+    emoji: '🎉',
+    title: 'Best-life & events',
+    items: [
+      { key: 'city-events', label: 'City events access' },
+      { key: 'delight-events', label: 'Delight events access' },
+      { key: 'safe-spots', label: 'Safe meeting spots', sub: 'Verified public venues' },
+    ],
+  },
+  {
+    key: 'perks-rewards',
+    emoji: '🎁',
+    title: 'Perks & rewards',
+    items: [
+      { key: 'welcome-coins', label: 'Welcome coins' },
+      { key: 'gift-access', label: 'Premium gift access' },
+      { key: 'seasonal', label: 'Seasonal rewards' },
+      { key: 'refer-earn', label: 'Refer & earn bonus' },
+    ],
+  },
+  {
+    key: 'forever-love',
+    emoji: '💍',
+    title: 'Forever Love Programme',
+    items: [
+      { key: 'honeymoon-reward', label: '₹5 Lakh honeymoon reward', sub: 'Match, marry & claim' },
+      { key: 'anniversary-gifts', label: 'Anniversary milestone gifts' },
+      { key: 'couple-events', label: 'Couple events access' },
+    ],
+  },
+]
+
+/* ---- VIP catalog ---- */
+const VIP_CATALOG: FeatureGroup[] = [
+  {
+    key: 'elite-access',
+    emoji: '💎',
+    title: 'Elite access',
+    items: [
+      { key: 'vip-pool', label: 'VIP-only member pool', sub: 'Browse premium verified profiles' },
+      { key: 'priority-visibility', label: 'Priority visibility', sub: 'Shown first to other VIPs' },
+      { key: 'priority-messages', label: 'Priority messages', sub: 'Skip the queue with VIP members' },
+    ],
+  },
+  {
+    key: 'match-discovery',
+    emoji: '❤️',
+    title: 'Match & discovery',
+    items: [
+      { key: 'unlimited-likes', label: 'Unlimited likes', sub: 'No daily cap on swipes' },
+      { key: 'ai-compat', label: 'AI Compatibility Score', sub: 'See match % before liking' },
+      { key: 'who-liked', label: 'See who liked you', sub: 'Secret Admirers revealed' },
+      { key: 'adv-filters', label: 'Advanced preference filters', sub: 'VIP-grade filtering' },
+      { key: 'rewind', label: 'Rewind last swipe', sub: 'Undo an accidental pass' },
+    ],
+  },
+  {
+    key: 'chat-messaging',
+    emoji: '💬',
+    title: 'Chat & messaging',
+    items: [
+      { key: 'unlimited-chat', label: 'Unlimited chat requests' },
+      { key: 'voice-video', label: 'Voice & video calls' },
+      { key: 'ai-icebreakers', label: 'AI icebreakers' },
+      { key: 'read-receipts', label: 'Read receipts' },
+      { key: 'gifts', label: 'Send & receive gifts & compliments' },
+    ],
+  },
+  {
+    key: 'status-privacy',
+    emoji: '👑',
+    title: 'Status & privacy',
+    items: [
+      { key: 'gold-badge', label: 'Gold VIP badge' },
+      { key: 'seeking-elite', label: '"Seeking Elite" tag' },
+      { key: 'ghost-mode', label: 'Ghost / incognito mode', sub: 'Browse privately' },
+      { key: 'safeface', label: 'SafeFace photo privacy' },
+    ],
+  },
+  {
+    key: 'advanced-trust',
+    emoji: '🛡️',
+    title: 'Advanced trust',
+    items: [
+      { key: 'id-verify', label: 'ID verification badge' },
+      { key: 'edu-verify', label: 'Education verification' },
+      { key: 'prof-verify', label: 'Profession verification' },
+      { key: 'platinum-verify', label: 'Platinum verification', sub: 'Highest trust tier' },
+      { key: 'authenticity', label: 'Profile authenticity checks' },
+    ],
+  },
+  {
+    key: 'premium-exp',
+    emoji: '✨',
+    title: 'Premium experiences',
+    items: [
+      { key: 'luxury-dates', label: 'Luxury date planning', sub: 'Fine dining, premium venues' },
+      { key: 'vip-events', label: 'VIP events access', sub: 'Rooftop socials, private mixers' },
+      { key: 'adventures', label: 'Adventure experiences', sub: 'Treks, retreats, travel meetups' },
+    ],
+  },
+  {
+    key: 'networking',
+    emoji: '🤝',
+    title: 'Networking & growth',
+    items: [
+      { key: 'career-network', label: 'Career networking', sub: 'Connect with professionals' },
+      { key: 'mentorship', label: 'Mentorship requests' },
+      { key: 'startup-connect', label: 'Startup & business connections' },
+    ],
+  },
+  {
+    key: 'vip-perks',
+    emoji: '🎁',
+    title: 'VIP perks',
+    items: [
+      { key: 'welcome-coins', label: 'Welcome coins', sub: '₹500 wallet bonus' },
+      { key: 'gift-access', label: 'Premium gift access' },
+      { key: 'seasonal', label: 'Seasonal rewards', sub: 'Exclusive limited-time perks' },
+      { key: 'refer-earn', label: 'Refer & earn bonus' },
+    ],
+  },
+]
+
+/* ---- VIP Elite catalog ---- */
+const ELITE_CATALOG: FeatureGroup[] = [
+  {
+    key: 'everything-vip',
+    emoji: '✔️',
+    title: 'Everything in VIP',
+    items: [
+      { key: 'all-vip', label: 'All VIP features included', sub: 'Plus everything below' },
+    ],
+  },
+  {
+    key: 'max-privacy',
+    emoji: '🔒',
+    title: 'Maximum privacy',
+    items: [
+      { key: 'elite-feed', label: 'Elite-only discovery feed', sub: 'Invitation-only pool' },
+      { key: 'visibility-control', label: 'Visibility control', sub: 'Who sees Elite = VIP — you decide' },
+      { key: 'hidden-photos', label: 'Hidden photos until mutual interest' },
+      { key: 'approx-location', label: 'Approximate location privacy' },
+      { key: 'screenshot-alerts', label: 'Screenshot alerts', sub: 'Know if someone screenshots' },
+    ],
+  },
+  {
+    key: 'curated-matching',
+    emoji: '🤍',
+    title: 'Curated elite matching',
+    items: [
+      { key: 'lifestyle-compat', label: 'Lifestyle & ambition compatibility' },
+      { key: 'curated-recs', label: 'Curated premium recommendations' },
+      { key: 'high-trust-eco', label: 'High-trust member ecosystem' },
+    ],
+  },
+  {
+    key: 'elite-status',
+    emoji: '👑',
+    title: 'Elite status',
+    items: [
+      { key: 'gold-crown', label: 'Gold Crown (Elite) badge' },
+      { key: 'platinum-profile', label: 'Platinum verified profile' },
+      { key: 'highest-trust', label: 'Highest trust-tier verification' },
+    ],
+  },
+  {
+    key: 'white-glove',
+    emoji: '🤵',
+    title: 'White-glove experiences',
+    items: [
+      { key: 'date-concierge', label: 'Personal date concierge', sub: 'White-glove planning' },
+      { key: 'itinerary', label: 'Premium itinerary planning' },
+      { key: 'luxury-venues', label: 'Luxury venue recommendations' },
+      { key: 'curated-gatherings', label: 'Members-only curated gatherings' },
+    ],
+  },
+  {
+    key: 'global-exp',
+    emoji: '🌍',
+    title: 'Global experiences',
+    items: [
+      { key: 'intl-retreats', label: 'International retreats' },
+      { key: 'luxury-travel', label: 'Luxury travel experiences' },
+      { key: 'premium-adventures', label: 'Curated premium adventures' },
+    ],
+  },
+  {
+    key: 'executive-network',
+    emoji: '💼',
+    title: 'Executive network',
+    items: [
+      { key: 'founder-intros', label: 'Founder & executive introductions' },
+      { key: 'career-network', label: 'Career networking' },
+      { key: 'mentorship', label: 'Mentorship requests' },
+    ],
+  },
+]
+
+const planData: Record<string, PlanEditData> = {
+  'premium-plus': {
+    name: 'Premium+',
+    badge: 'MOST POPULAR',
+    tagline: 'Find better matches. Date safer. Connect faster.',
+    from: '₹433/mo',
+    active: '8,420',
+    pool: 'Free & Premium',
+    featuresLive: '8 live',
+    heroGradient: 'bg-gradient-to-br from-[#ec5c80] via-[#e04a6f] to-[#c62a55]',
+    visibilityRule: 'Shown in standard + Premium discovery',
+    wallRule: WALL_RULE,
+    accent: ROSE_ACCENT,
+    pricing: [
+      { key: '1m', label: '1 month', months: 1, rate: 499, offered: true },
+      { key: '3m', label: '3 months', months: 3, rate: 433, offered: true },
+      { key: '6m', label: '6 months', months: 6, rate: 400, highlighted: true, offered: true },
+      { key: 'forever', label: 'Forever', months: 'forever', rate: 9999, offered: true },
+    ],
+    featureCatalog: PREMIUM_CATALOG,
+    enabledFeatures: [
+      'unlimited-likes', 'ai-compat', 'who-liked',
+      'voice-video', 'unlimited-chat', 'read-receipts',
+      'id-verify', 'authenticity',
+      'safeface',
+      'premium-badge', 'marriage-intent',
+      'delight-events', 'safe-spots',
+      'refer-earn',
+      'honeymoon-reward',
+    ],
+    quotas: [
+      { key: 'likes', emoji: '❤️', label: 'Daily likes', unit: '/day', value: 'unlimited' },
+      { key: 'boosts', emoji: '🚀', label: 'Weekly boosts', unit: '/wk', value: 1 },
+      { key: 'roses', emoji: '⭐', label: 'Roses', unit: '/wk', value: 5 },
+      { key: 'compliments', emoji: '💝', label: 'Weekly compliments', unit: '/wk', value: 3 },
+      { key: 'dateplans', emoji: '📅', label: 'Weekly Date plans', unit: '/wk', value: 1 },
+      { key: 'rewinds', emoji: '↩️', label: 'Rewinds', unit: '/day', value: 3 },
+      { key: 'coins', emoji: '🪙', label: 'Welcome coins', unit: 'one-time', value: 0 },
+    ],
+  },
+  vip: {
+    name: 'VIP',
+    tagline: 'Exclusive access for premium singles seeking elevated connections.',
+    from: '₹1,667/mo',
+    active: '2,980',
+    pool: 'VIP & VIP Elite',
+    featuresLive: '15 live',
+    heroGradient: 'bg-gradient-to-r from-[#c99a55] via-[#a97b33] to-[#8a611f]',
+    visibilityRule: 'VIP pool · priority placement to other VIPs',
+    wallRule: WALL_RULE,
+    accent: AMBER_ACCENT,
+    pricing: [
+      { key: '1m', label: '1 month', months: 1, rate: 1999, offered: true },
+      { key: '3m', label: '3 months', months: 3, rate: 1833, offered: true },
+      { key: '6m', label: '6 months', months: 6, rate: 1667, highlighted: true, offered: true },
+      { key: 'forever', label: 'Forever', months: 'forever', rate: '', offered: true },
+    ],
+    featureCatalog: VIP_CATALOG,
+    enabledFeatures: [
+      'vip-pool', 'priority-visibility', 'priority-messages',
+      'gold-badge', 'seeking-elite',
+      'edu-verify', 'prof-verify', 'authenticity',
+      'luxury-dates', 'vip-events', 'adventures',
+      'career-network', 'mentorship', 'startup-connect',
+      'gift-access',
+    ],
+    quotas: [
+      { key: 'likes', emoji: '❤️', label: 'Daily likes', unit: '/day', value: 'unlimited' },
+      { key: 'boosts', emoji: '🚀', label: 'Weekly boosts', unit: '/wk', value: 'unlimited' },
+      { key: 'roses', emoji: '⭐', label: 'Roses', unit: '/wk', value: 15 },
+      { key: 'compliments', emoji: '💝', label: 'Weekly compliments', unit: '/wk', value: 10 },
+      { key: 'dateplans', emoji: '📅', label: 'Weekly Date plans', unit: '/wk', value: 3 },
+      { key: 'rewinds', emoji: '↩️', label: 'Rewinds', unit: '/day', value: 'unlimited' },
+      { key: 'coins', emoji: '🪙', label: 'Welcome coins', unit: 'one-time', value: 500 },
+    ],
+  },
+  'vip-elite': {
+    name: 'VIP Elite',
+    badge: 'INVITE ONLY',
+    tagline: 'Invitation only. Only 100 members accepted per city.',
+    from: '₹6,999/mo',
+    active: '1,490',
+    pool: 'VIP & VIP Elite',
+    poolLocked: true,
+    featuresLive: '19 live',
+    heroGradient: 'bg-gradient-to-br from-[#2a1216] via-[#141414] to-[#050505]',
+    visibilityRule: 'Invite-only · hidden from public discovery',
+    wallRule: WALL_RULE,
+    accent: DARK_ACCENT,
+    pricing: [
+      { key: '1m', label: '1 month', months: 1, rate: 6999, offered: true },
+      { key: '3m', label: '3 months', months: 3, rate: 6333, offered: true },
+      { key: '6m', label: '6 months', months: 6, rate: 5500, highlighted: true, offered: true },
+      { key: 'forever', label: 'Forever', months: 'forever', rate: '', offered: true },
+    ],
+    featureCatalog: ELITE_CATALOG,
+    enabledFeatures: [
+      'all-vip',
+      'elite-feed', 'visibility-control', 'hidden-photos', 'approx-location', 'screenshot-alerts',
+      'lifestyle-compat', 'curated-recs', 'high-trust-eco',
+      'platinum-profile', 'highest-trust',
+      'date-concierge', 'itinerary', 'luxury-venues', 'curated-gatherings',
+      'intl-retreats', 'luxury-travel', 'premium-adventures',
+      'founder-intros',
+    ],
+    quotas: [
+      { key: 'likes', emoji: '❤️', label: 'Daily likes', unit: '/day', value: 'unlimited' },
+      { key: 'boosts', emoji: '🚀', label: 'Weekly boosts', unit: '/wk', value: 'unlimited' },
+      { key: 'roses', emoji: '⭐', label: 'Roses', unit: '/wk', value: 'unlimited' },
+      { key: 'compliments', emoji: '💝', label: 'Weekly compliments', unit: '/wk', value: 15 },
+      { key: 'dateplans', emoji: '📅', label: 'Weekly Date plans', unit: '/wk', value: 'unlimited' },
+      { key: 'rewinds', emoji: '↩️', label: 'Rewinds', unit: '/day', value: 'unlimited' },
+      { key: 'coins', emoji: '🪙', label: 'Welcome coins', unit: 'one-time', value: 2000 },
+    ],
+  },
+}
+
+/* --------------------------------- page ----------------------------------- */
+export default function Page() {
+  const { id } = useParams<{ id: string }>()
+  const router = useRouter()
+  const plan = planData[id]
+
+  // form state
+  const [name, setName] = React.useState(plan?.name ?? '')
+  const [tagline, setTagline] = React.useState(plan?.tagline ?? '')
+  const [badge, setBadge] = React.useState(plan?.badge ?? '')
+  const [visibility, setVisibility] = React.useState(plan?.visibilityRule ?? '')
+  const [pricing, setPricing] = React.useState<PricingTerm[]>(plan?.pricing ?? [])
+  const [enabled, setEnabled] = React.useState<Set<string>>(
+    new Set(plan?.enabledFeatures ?? []),
+  )
+  const [quotas, setQuotas] = React.useState<Quota[]>(plan?.quotas ?? [])
+
+  if (!plan) {
+    return (
+      <DefaultLayout>
+        <div className="p-8 text-sm text-gray-500">
+          Plan not found.{' '}
+          <button
+            onClick={() => router.push('/revenue/subscriptions')}
+            className="font-semibold text-rose-500 hover:underline"
+          >
+            Back to all plans
+          </button>
+        </div>
+      </DefaultLayout>
+    )
+  }
+
+  const catalog = plan.featureCatalog
+  const totalFeatures = catalog.reduce((n, g) => n + g.items.length, 0)
+  const accent = plan.accent
+
+  /* ------ quota helpers ------ */
+  const setQuota = (key: string, value: number | 'unlimited') =>
+    setQuotas((prev) => prev.map((q) => (q.key === key ? { ...q, value } : q)))
+
+  const step = (key: string, delta: number) =>
+    setQuotas((prev) =>
+      prev.map((q) => {
+        if (q.key !== key || q.value === 'unlimited') return q
+        return { ...q, value: Math.max(0, q.value + delta) }
+      }),
+    )
+
+  /* ------ pricing helpers ------ */
+  const setRate = (key: string, raw: string) =>
+    setPricing((prev) =>
+      prev.map((t) =>
+        t.key === key ? { ...t, rate: raw === '' ? '' : Math.max(0, Number(raw) || 0) } : t,
+      ),
+    )
+
+  const toggleOffered = (key: string) =>
+    setPricing((prev) => prev.map((t) => (t.key === key ? { ...t, offered: !t.offered } : t)))
+
+  const baseRate = pricing.find((t) => t.months === 1)?.rate
+
+  /* ------ feature helpers ------ */
+  const toggleFeature = (key: string) =>
+    setEnabled((prev) => {
+      const next = new Set(prev)
+      next.has(key) ? next.delete(key) : next.add(key)
+      return next
+    })
+
+  const setGroup = (group: FeatureGroup, on: boolean) =>
+    setEnabled((prev) => {
+      const next = new Set(prev)
+      group.items.forEach((i) => (on ? next.add(i.key) : next.delete(i.key)))
+      return next
+    })
+
+  const enableAllFeatures = () =>
+    setEnabled(new Set(catalog.flatMap((g) => g.items.map((i) => i.key))))
+
+  const handleSave = () => {
+    // TODO: API call — abhi mock
+    console.log({
+      id,
+      name,
+      tagline,
+      badge,
+      visibility,
+      pricing,
+      enabledFeatures: [...enabled],
+      quotas,
+    })
+  }
+
+  return (
+    <DefaultLayout>
+      {/* Page top bar — sticky on scroll --------------------------------- */}
+      <div className="sticky top-14 z-30 flex flex-col gap-3 border-b border-gray-200 bg-[#f7f6f5] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-black">Edit {plan.name}</h1>
+          <p className="mt-0.5 text-sm">
+            <button
+              onClick={() => router.push('/revenue/subscriptions')}
+              className="text-rose-500 hover:underline"
+            >
+              Membership plans
+            </button>
+            <span className="text-gray-400"> › </span>
+            <span className="text-gray-600">Edit plan</span>
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <div className="relative">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search users, IDs, transactions..."
+              className="w-full rounded-full border border-gray-200 bg-white py-2 pl-9 pr-4 text-sm text-black outline-none placeholder:text-gray-400 focus:border-gray-300 sm:w-72"
+            />
+          </div>
+          <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
+            <BellIcon className="h-5 w-5" />
+          </button>
+          <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
+            <QuestionIcon className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* pb-28 → fixed bottom bar ke liye jagah, mat hatana */}
+      <div className="mx-auto max-w-8xl px-6 py-6 pb-28">
+        {/* Hero banner ---------------------------------------------------- */}
+        <div className={`rounded-3xl ${plan.heroGradient} p-8 text-white`}>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => router.push('/revenue/subscriptions')}
+              className="flex items-center gap-1 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium backdrop-blur-sm transition hover:bg-white/25"
+            >
+              <ChevronLeftIcon className="h-4 w-4" />
+              All plans
+            </button>
+            <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Live
+            </span>
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <h2 className="text-3xl font-bold">{plan.name}</h2>
+            {plan.badge && (
+              <span className="rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold tracking-widest backdrop-blur-sm">
+                {plan.badge}
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-sm text-white/85">{plan.tagline}</p>
+
+          <div className="mt-6 flex flex-wrap gap-x-12 gap-y-4">
+            <HeroStat label="FROM" value={plan.from} />
+            <HeroStat label="ACTIVE" value={plan.active} />
+            <HeroStat
+              label="POOL"
+              value={plan.pool}
+              icon={
+                plan.poolLocked ? (
+                  <LockIcon className="h-4 w-4 text-amber-400" />
+                ) : undefined
+              }
+            />
+            <HeroStat label="FEATURES" value={plan.featuresLive} />
+          </div>
+        </div>
+
+        {/* Cards grid ------------------------------------------------------ */}
+        <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+          {/* left column */}
+          <div className="space-y-6">
+            {/* ---------- Plan identity & discovery ---------- */}
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-4">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-50">
+                  <TagIcon className="h-5 w-5 text-rose-500" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Plan identity &amp; discovery</h3>
+                  <p className="text-xs text-gray-400">
+                    Name, tagline, badge and the pool members join
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-5 px-6 py-5">
+                <Field label="PLAN NAME">
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-rose-300"
+                  />
+                </Field>
+
+                <Field label="TAGLINE">
+                  <textarea
+                    value={tagline}
+                    onChange={(e) => setTagline(e.target.value)}
+                    rows={2}
+                    className="w-full resize-y rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-rose-300"
+                  />
+                </Field>
+
+                <Field label="BADGE LABEL" hint="shown on the card — leave blank for none">
+                  <input
+                    value={badge}
+                    onChange={(e) => setBadge(e.target.value)}
+                    placeholder="e.g. Most popular"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-rose-300"
+                  />
+                </Field>
+
+                <Field label="DISCOVERY POOL" hint="fixed for this plan">
+                  <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-[#f7f5f2] px-4 py-2.5 text-sm text-gray-600">
+                    <LockIcon className="h-3.5 w-3.5 text-amber-500" />
+                    {plan.pool}
+                  </div>
+                </Field>
+
+                <Field label="VISIBILITY RULE" hint="how this plan appears to others">
+                  <textarea
+                    value={visibility}
+                    onChange={(e) => setVisibility(e.target.value)}
+                    rows={2}
+                    className="w-full resize-y rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-rose-300"
+                  />
+                </Field>
+
+                {/* Wall rule strip */}
+                <div className="flex items-start gap-2 rounded-xl bg-[#f3efe9] px-4 py-3 text-sm text-gray-600">
+                  <BanIcon className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                  <p>
+                    <span className="font-bold text-gray-800">Wall rule:</span> {plan.wallRule}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ---------- Pricing ---------- */}
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-4">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50">
+                  <CardIcon className="h-5 w-5 text-amber-500" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Pricing</h3>
+                  <p className="text-xs text-gray-400">
+                    Set the monthly rate · total &amp; savings auto-calculated
+                  </p>
+                </div>
+              </div>
+
+              <div className="divide-y divide-gray-100 px-6">
+                {pricing.map((t) => {
+                  const isForever = t.months === 'forever'
+                  const rateNum = typeof t.rate === 'number' ? t.rate : 0
+                  const total = !isForever && rateNum ? rateNum * (t.months as number) : 0
+                  const save =
+                    !isForever &&
+                    typeof baseRate === 'number' &&
+                    baseRate > 0 &&
+                    rateNum > 0 &&
+                    t.months !== 1
+                      ? Math.round((1 - rateNum / baseRate) * 100)
+                      : 0
+
+                  return (
+                    <div key={t.key} className="py-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <StarIcon
+                            filled={t.highlighted}
+                            className={`h-5 w-5 shrink-0 ${
+                              t.highlighted ? 'text-amber-500' : 'text-amber-400'
+                            }`}
+                          />
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold text-gray-900">{t.label}</p>
+                            {t.highlighted && (
+                              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold tracking-widest text-amber-600">
+                                HIGHLIGHTED
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex shrink-0 items-center gap-3">
+                          <div className="flex items-center overflow-hidden rounded-xl border border-gray-200">
+                            <span className="flex h-10 w-8 items-center justify-center bg-gray-50 text-sm text-gray-500">
+                              ₹
+                            </span>
+                            <input
+                              type="number"
+                              value={t.rate}
+                              onChange={(e) => setRate(t.key, e.target.value)}
+                              placeholder={isForever ? 'one-time' : ''}
+                              className="h-10 w-20 border-0 bg-white px-2 text-sm font-semibold text-gray-900 outline-none placeholder:text-xs placeholder:font-normal placeholder:text-gray-400"
+                            />
+                            {!isForever && (
+                              <span className="flex h-10 items-center bg-white pr-3 text-xs text-gray-400">
+                                /mo
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => toggleOffered(t.key)}
+                            className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
+                              t.offered
+                                ? 'bg-[#f3efe9] text-amber-700'
+                                : 'border border-gray-200 bg-white text-gray-400'
+                            }`}
+                          >
+                            {t.offered ? 'Offered' : 'Off'}
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="mt-1.5 pl-8 text-xs text-gray-500">
+                        {isForever ? (
+                          'one-time payment'
+                        ) : (
+                          <>
+                            Total ₹{total.toLocaleString('en-IN')} for {t.months} mo
+                            {save > 0 && (
+                              <>
+                                {' '}
+                                · <span className="font-bold text-emerald-600">save {save}%</span>
+                              </>
+                            )}
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* right column */}
+          <div className="space-y-6">
+            {/* ---------- Limits & quotas ---------- */}
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-4">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50">
+                  <ChartIcon className="h-5 w-5 text-emerald-600" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Limits &amp; quotas</h3>
+                  <p className="text-xs text-gray-400">Set a number or switch to unlimited</p>
+                </div>
+              </div>
+
+              <div className="divide-y divide-gray-100 px-6">
+                {quotas.map((q) => {
+                  const isUnlimited = q.value === 'unlimited'
+                  return (
+                    <div key={q.key} className="flex items-center justify-between gap-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-base">
+                          {q.emoji}
+                        </span>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">{q.label}</p>
+                          <p className="text-xs text-gray-400">{q.unit}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2">
+                        <div
+                          className={`flex items-center overflow-hidden rounded-xl border border-gray-200 ${
+                            isUnlimited ? 'opacity-40' : ''
+                          }`}
+                        >
+                          <button
+                            onClick={() => step(q.key, -1)}
+                            disabled={isUnlimited}
+                            className="flex h-9 w-9 items-center justify-center bg-gray-50 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed"
+                          >
+                            −
+                          </button>
+                          <span className="flex h-9 w-12 items-center justify-center bg-white text-sm font-semibold text-gray-900">
+                            {isUnlimited ? '∞' : q.value}
+                          </span>
+                          <button
+                            onClick={() => step(q.key, 1)}
+                            disabled={isUnlimited}
+                            className="flex h-9 w-9 items-center justify-center bg-gray-50 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => setQuota(q.key, isUnlimited ? 0 : 'unlimited')}
+                          className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                            isUnlimited
+                              ? 'border-rose-300 bg-rose-50 text-rose-500'
+                              : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          ∞ Unlimited
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ---------- Feature entitlements ---------- */}
+        <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
+          {/* header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-base">
+                🏆
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Feature entitlements</h3>
+                <p className="text-xs text-gray-400">
+                  {enabled.size} of {totalFeatures} app features enabled · toggle what this plan
+                  includes
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={enableAllFeatures}
+                className={`rounded-full px-4 py-1.5 text-xs font-bold text-white transition ${accent.headerBtn}`}
+              >
+                Enable all
+              </button>
+              <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${accent.headerPill}`}>
+                {enabled.size}/{totalFeatures} on
+              </span>
+            </div>
+          </div>
+
+          {/* groups grid */}
+          <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2">
+            {catalog.map((group) => {
+              const onCount = group.items.filter((i) => enabled.has(i.key)).length
+              const allOn = onCount === group.items.length
+              return (
+                <div key={group.key} className="rounded-xl border border-gray-200 bg-white">
+                  {/* group header */}
+                  <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{group.emoji}</span>
+                      <h4 className="text-sm font-bold text-gray-900">{group.title}</h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setGroup(group, !allOn)}
+                        className={`rounded-full border px-3 py-1 text-[11px] font-bold transition ${accent.groupBtn}`}
+                      >
+                        {allOn ? 'Clear all' : 'Enable all'}
+                      </button>
+                      <span className="text-[11px] font-semibold text-gray-400">
+                        {onCount}/{group.items.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* items */}
+                  <div className="divide-y divide-gray-50">
+                    {group.items.map((item) => {
+                      const isOn = enabled.has(item.key)
+                      return (
+                        <button
+                          key={item.key}
+                          onClick={() => toggleFeature(item.key)}
+                          className={`flex w-full items-center gap-3 px-4 py-3 text-left transition ${
+                            isOn ? 'bg-white' : 'bg-[#faf9f7]'
+                          }`}
+                        >
+                          <FeatureToggle on={isOn} onClass={accent.toggleOn} />
+                          <div>
+                            <p
+                              className={`text-xs font-bold ${
+                                isOn ? 'text-gray-900' : 'text-gray-400'
+                              }`}
+                            >
+                              {item.label}
+                            </p>
+                            {item.sub && (
+                              <p
+                                className={`text-[11px] ${
+                                  isOn ? 'text-gray-400' : 'text-gray-300'
+                                }`}
+                              >
+                                {item.sub}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Fixed bottom save bar ------------------------------------------- */}
+      {/* NOTE: lg:left-[290px] = sidebar width. Apni sidebar alag ho to
+          number badlo: w-72.5→290px, w-72→288px, w-64→256px */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-3 lg:left-[290px]">
+        <div className="mx-auto flex max-w-8xl items-center gap-4 rounded-2xl border border-gray-200 bg-white px-5 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
+          <p className="text-sm text-gray-500">
+            <span className="font-bold text-gray-900">{plan.name}</span> · changes apply the moment
+            you save
+          </p>
+          <button
+            onClick={() => router.push('/revenue/subscriptions')}
+            className="rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-bold text-gray-900 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="rounded-full bg-gradient-to-r from-rose-400 to-rose-500 px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:from-rose-500 hover:to-rose-600"
+          >
+            Save changes
+          </button>
+        </div>
+      </div>
+    </DefaultLayout>
+  )
+}
+
+/* ------------------------------ subcomponents ------------------------------ */
+function HeroStat({
+  label,
+  value,
+  icon,
+}: {
+  label: string
+  value: string
+  icon?: React.ReactNode
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-bold tracking-widest text-white/70">{label}</p>
+      <p className="mt-0.5 flex items-center gap-1.5 text-lg font-bold">
+        {icon}
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <p className="mb-1.5 text-[11px] font-bold tracking-wide text-gray-700">
+        {label}
+        {hint && <span className="ml-2 font-normal normal-case text-rose-400">{hint}</span>}
+      </p>
+      {children}
+    </div>
+  )
+}
+
+function FeatureToggle({ on, onClass }: { on: boolean; onClass: string }) {
+  return (
+    <span
+      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${
+        on ? onClass : 'bg-gray-200'
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+          on ? 'translate-x-[18px]' : 'translate-x-0.5'
+        }`}
+      />
+    </span>
+  )
+}

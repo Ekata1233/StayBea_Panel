@@ -1,5 +1,6 @@
 'use client'
 
+import { API_BASE_URL } from '@/utils/api'
 import React, {
   createContext,
   useCallback,
@@ -37,7 +38,7 @@ export type LaunchConfig = {
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ??
-  'https://dating-app-backend-plum.vercel.app/api/admin'
+  `${API_BASE_URL}/api/admin`
 
 // Empty starting config. Real values come from the API on mount; if the database
 // has no row yet, every field stays blank/zero — no static placeholder values.

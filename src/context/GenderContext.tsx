@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "@/utils/api";
 
 // Types
 interface GenderOption {
@@ -28,7 +29,7 @@ interface GenderContextType {
 
 const GenderContext = createContext<GenderContextType | undefined>(undefined);
 
-const API_URL = "https://dating-app-backend-plum.vercel.app/api/gender";
+const API_URL = `${API_BASE_URL}/api/gender`;
 
 export const GenderProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<Gender[]>([]);

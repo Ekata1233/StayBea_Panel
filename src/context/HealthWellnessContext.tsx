@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useFlowType } from "@/utils/flowType";
+import { API_BASE_URL } from "@/utils/api";
 
 /* ================= TYPES ================= */
 interface Option {
@@ -40,7 +41,7 @@ const HealthWellnessContext = createContext<ContextType | undefined>(
   undefined
 );
 
-const API_URL = "https://dating-app-backend-plum.vercel.app/api/question";
+const API_URL = `${API_BASE_URL}/api/question`;
 
 export const HealthWellnessProvider = ({
   children,

@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
 import { useFlowType } from "@/utils/flowType";
+import { API_BASE_URL } from "@/utils/api";
 
 // Types
 interface LookingForItem {
@@ -30,7 +31,7 @@ interface LookingForContextType {
 
 const LookingForContext = createContext<LookingForContextType | undefined>(undefined);
 
-const API_URL = "https://dating-app-backend-plum.vercel.app/api/lookingFor";
+const API_URL = `${API_BASE_URL}/api/lookingFor`;
 
 export const LookingForProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<LookingFor[]>([]);

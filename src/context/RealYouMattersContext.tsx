@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useFlowType } from "@/utils/flowType";
+import { API_BASE_URL } from "@/utils/api";
 
 /* ================= TYPES ================= */
 interface Option {
@@ -42,7 +43,7 @@ const RealYouMattersContext = createContext<ContextType | undefined>(
 );
 
 const API_URL =
-  "https://dating-app-backend-plum.vercel.app/api/question";
+  `${API_BASE_URL}/api/question`;
 
 export const RealYouMattersProvider = ({
   children,

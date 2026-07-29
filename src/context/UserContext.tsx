@@ -1,6 +1,7 @@
 "use client";
 
 import { IUser } from "@/types/user";
+import { API_BASE_URL } from "@/utils/api";
 import React, {
   createContext,
   useContext,
@@ -30,7 +31,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setUserLoading(true);
     setUserError(null);
     try {
-      const res = await fetch(`https://dating-app-backend-plum.vercel.app/api/user/get-all`);
+      const res = await fetch(`${API_BASE_URL}/api/user/get-all`);
       const data = await res.json();
 
 

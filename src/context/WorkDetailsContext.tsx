@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
 import { useFlowType } from "@/utils/flowType";
+import { API_BASE_URL } from "@/utils/api";
 
 // Types
 interface WorkingWith {
@@ -32,7 +33,7 @@ interface WorkDetailsContextType {
 
 const WorkDetailsContext = createContext<WorkDetailsContextType | undefined>(undefined);
 
-const API_URL = "https://dating-app-backend-plum.vercel.app/api/workDetails";
+const API_URL = `${API_BASE_URL}/api/workDetails`;
 
 export const WorkDetailsProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<WorkDetails[]>([]);

@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
 import { useFlowType } from "@/utils/flowType";
+import { API_BASE_URL } from "@/utils/api";
 
 // Types
 interface Education {
@@ -27,7 +28,7 @@ interface EducationContextType {
 
 const EducationContext = createContext<EducationContextType | undefined>(undefined);
 
-const API_URL = "https://dating-app-backend-plum.vercel.app/api/education";
+const API_URL = `${API_BASE_URL}/api/education`;
 
 export const EducationProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<Education[]>([]);
