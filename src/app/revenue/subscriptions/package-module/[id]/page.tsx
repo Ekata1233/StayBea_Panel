@@ -395,15 +395,15 @@ function EditPageInner() {
   /* ------ derived lists ------ */
   const quotaRows = limits.filter((l) => l.unlimited || l.limit !== null);
 
-  const entitlementGroups = React.useMemo(() => {
-    const map = new Map<string, LimitRow[]>();
-    limits.forEach((l) => {
-      const arr = map.get(l.category) ?? [];
-      arr.push(l);
-      map.set(l.category, arr);
-    });
-    return [...map.entries()];
-  }, [limits]);
+const entitlementGroups = React.useMemo(() => {
+  const map = new Map<string, LimitRow[]>();
+  limits.forEach((l) => {
+    const arr = map.get(l.category) ?? [];
+    arr.push(l);
+    map.set(l.category, arr);
+  });
+  return Array.from(map.entries());
+}, [limits]);
 
   const enabledCount = limits.filter((l) => l.enabled).length;
 
