@@ -9,9 +9,9 @@ import PlanComparison from './PlanComparison'
 export default function Page() {
   return (
     <DefaultLayout>
-      <PackageRevenue />
+      {/* <PackageRevenue /> */}
       <PackageModule/>
-      <PlanComparison/>
+      {/* <PlanComparison/> */}
     </DefaultLayout>
   )
 }

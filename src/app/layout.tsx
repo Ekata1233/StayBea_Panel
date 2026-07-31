@@ -30,6 +30,7 @@ import { LifeStyleProvider } from "@/context/LifestyleContext";
 import { InterestProvider } from "@/context/InterestContext";
 import { FamilyProfileProvider } from "@/context/Familyprofilecontext";
 import { WaitlistProvider } from "@/context/Waitlistcontext";
+import { PackageProvider } from "@/context/PackageContext";
 
 export default function RootLayout({
   children,
@@ -71,11 +72,13 @@ export default function RootLayout({
                                                 <InterestProvider>
                                                   <FamilyProfileProvider>
                                                     <WaitlistProvider>
+                                                      <PackageProvider>
                                                     {loading ? (
                                                       <Loader />
                                                     ) : (
                                                       children
                                                     )}
+                                                    </PackageProvider>
                                                     </WaitlistProvider>
                                                   </FamilyProfileProvider>
                                                 </InterestProvider>
