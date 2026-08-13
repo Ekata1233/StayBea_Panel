@@ -162,71 +162,71 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     {
       name: "REVENUE",
       menuItems: [
-       {
-  icon: (
-    <svg
-      className="stroke-current"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M16 21V19C16 17.3431 14.6569 16 13 16H7C5.34315 16 4 17.3431 4 19V21"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx="10"
-        cy="8"
-        r="3"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path
-        d="M20 21V19C20 17.5978 19.0186 16.4245 17.7 16.0938"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M15 5.13C16.7252 5.57006 18 7.13616 18 9C18 10.8638 16.7252 12.4299 15 12.87"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ),
-  label: "Refer & Earn",
-  route: "/revenue/refer-earn",
-},
         {
-  icon: (
-    <svg
-      className="fill-current"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M3 19L4.5 7L9 11L12 5L15 11L19.5 7L21 19H3Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ),
-  label: "Subscriptions",
-  route: "/revenue/subscriptions",
-},
+          icon: (
+            <svg
+              className="stroke-current"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 21V19C16 17.3431 14.6569 16 13 16H7C5.34315 16 4 17.3431 4 19V21"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle
+                cx="10"
+                cy="8"
+                r="3"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path
+                d="M20 21V19C20 17.5978 19.0186 16.4245 17.7 16.0938"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M15 5.13C16.7252 5.57006 18 7.13616 18 9C18 10.8638 16.7252 12.4299 15 12.87"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ),
+          label: "Refer & Earn",
+          route: "/revenue/refer-earn",
+        },
+        {
+          icon: (
+            <svg
+              className="fill-current"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 19L4.5 7L9 11L12 5L15 11L19.5 7L21 19H3Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ),
+          label: "Subscriptions",
+          route: "/revenue/subscriptions",
+        },
         {
           icon: (
             <svg
@@ -247,8 +247,34 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               />
             </svg>
           ),
-          label: "Blocked Users",
-          route: "/admin/user-management/blocked-users",
+          label: "Gifts",
+          route: "/revenue/gifts",
+        },
+        {
+          icon: (
+            <svg
+              className="fill-current"
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Rupee symbol inside rounded square */}
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M4.05 0.9C2.31 0.9 0.9 2.31 0.9 4.05V13.95C0.9 15.69 2.31 17.1 4.05 17.1H13.95C15.69 17.1 17.1 15.69 17.1 13.95V4.05C17.1 2.31 15.69 0.9 13.95 0.9H4.05ZM2.19 4.05C2.19 3.02 3.02 2.19 4.05 2.19H13.95C14.98 2.19 15.81 3.02 15.81 4.05V13.95C15.81 14.98 14.98 15.81 13.95 15.81H4.05C3.02 15.81 2.19 14.98 2.19 13.95V4.05Z"
+                fill=""
+              />
+              <path
+                d="M5.85 4.5H12.15V5.79H10.35C10.62 6.12 10.81 6.51 10.9 6.93H12.15V8.22H10.87C10.62 9.55 9.5 10.56 8.1 10.65L11.25 13.5H9.36L6.08 10.53V9.36H7.88C8.66 9.36 9.31 8.89 9.55 8.22H5.85V6.93H9.53C9.28 6.28 8.64 5.79 7.88 5.79H5.85V4.5Z"
+                fill=""
+              />
+            </svg>
+          ),
+          label: "Pricing & controls",
+          route: "/revenue/pricing-controls",
         },
         {
           icon: (

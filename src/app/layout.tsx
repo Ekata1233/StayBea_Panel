@@ -31,6 +31,12 @@ import { InterestProvider } from "@/context/InterestContext";
 import { FamilyProfileProvider } from "@/context/Familyprofilecontext";
 import { WaitlistProvider } from "@/context/Waitlistcontext";
 import { PackageProvider } from "@/context/PackageContext";
+import { GiftsProvider } from "@/context/GiftsContext";
+import { NetworkingIntentProvider } from "@/context/Networkingintentcontext";
+import { LanguageProvider } from "@/context/Languagecontext";
+import { PricingControllerProvider } from "@/context/Pricingcontrollercontext";
+import { BoostSuperProvider } from "@/context/BoostSuperContext";
+import { DatePlanProvider } from "@/context/DatePlanContext";
 
 export default function RootLayout({
   children,
@@ -73,11 +79,23 @@ export default function RootLayout({
                                                   <FamilyProfileProvider>
                                                     <WaitlistProvider>
                                                       <PackageProvider>
+                                                        <GiftsProvider>
+                                                          <NetworkingIntentProvider>
+                                                            <LanguageProvider>
+                                                              <PricingControllerProvider>
+                                                                <BoostSuperProvider>
+                                                                  <DatePlanProvider>
                                                     {loading ? (
                                                       <Loader />
                                                     ) : (
                                                       children
                                                     )}
+                                                    </DatePlanProvider>
+                                                    </BoostSuperProvider>
+                                                    </PricingControllerProvider>
+                                                    </LanguageProvider>
+                                                    </NetworkingIntentProvider>
+                                                    </GiftsProvider>
                                                     </PackageProvider>
                                                     </WaitlistProvider>
                                                   </FamilyProfileProvider>

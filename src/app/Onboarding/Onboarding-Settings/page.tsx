@@ -13,6 +13,8 @@ import Family from './componants/Family'
 import PromptLibrary from './componants/PromptLibrary'
 import InterestLibrary from './componants/InterestLibrary'
 import ReligionCommunity from './componants/ReligionCommunity'
+import Networkingintent from './componants/Networkingintent'
+import Languages from './componants/Languages'
 
 function Page() {
   return (
@@ -54,10 +56,12 @@ function Page() {
             {/* <AboutBasics /> */}
             <EducationCarrer/>
             <Lifestyle />
+            <Languages/>
        
             <Family/>
             <ReligionCommunity/>
             <InterestLibrary/>
+            <Networkingintent/>
             <PromptLibrary/>
           </div>
         </div>
