@@ -87,6 +87,18 @@ const TrashIcon = () => (
   </svg>
 );
 
+const Chevron = ({ open }: { open: boolean }) => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+  >
+    <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
 /* ================= Small UI Pieces ================= */
 
 const Toggle = ({
@@ -140,6 +152,7 @@ const UnitInput = ({
     />
   </div>
 );
+
 const NumField = ({
   label,
   unit,
@@ -169,6 +182,7 @@ const NumField = ({
     </div>
   </label>
 );
+
 const TextInput = ({
   value,
   onChange,
@@ -186,6 +200,27 @@ const TextInput = ({
     placeholder={placeholder}
     onChange={(e) => onChange(e.target.value)}
     className={`h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none placeholder:text-gray-300 focus:border-gray-300 dark:border-gray-700 dark:bg-transparent dark:text-white ${className}`}
+  />
+);
+
+/** Compact input used inside the collapsed comparison editor. */
+const MiniInput = ({
+  value,
+  onChange,
+  placeholder,
+  className = "",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+}) => (
+  <input
+    type="text"
+    value={value}
+    placeholder={placeholder}
+    onChange={(e) => onChange(e.target.value)}
+    className={`h-8 w-full min-w-0 rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:bg-transparent dark:text-white ${className}`}
   />
 );
 
@@ -221,6 +256,8 @@ function BoostsSuperBoostsInner() {
   } = useBoostSuper();
 
   const [activeTab, setActiveTab] = useState<TierKey>("BOOST");
+  const [compOpen, setCompOpen] = useState(false);
+const [whyOpen, setWhyOpen] = useState(false);
   const tier: BoostTier = tiers[activeTab];
   const isBoost = activeTab === "BOOST";
 
@@ -378,9 +415,7 @@ function BoostsSuperBoostsInner() {
                 className="flex flex-wrap items-center justify-between gap-4 py-5"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">
-                    {row.title}
-                  </p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{row.title}</p>
                   {"subtitleHighlight" in row && row.subtitleHighlight ? (
                     <p className="mt-1 inline-block rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
                       {row.subtitle}
@@ -403,65 +438,80 @@ function BoostsSuperBoostsInner() {
             ))}
           </div>
 
-          {/* ---------- What The Member Gets (whyBoostWorks) ---------- */}
+         {/* ---------- What The Member Gets · collapsible ---------- */}
           <div className="mt-2">
-            <div className="flex items-center justify-between">
-              <SectionLabel>What The Member Gets</SectionLabel>
+            <SectionLabel>Why {isBoost ? "Boost" : "Super Boost"} works</SectionLabel>
+
+            <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-800">
               <button
                 type="button"
-                onClick={() => addWhy(activeTab)}
-                className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                onClick={() => setWhyOpen((v) => !v)}
+                className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
               >
-                + Add benefit
+                <span className="flex min-w-0 items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-200">
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-500 dark:bg-green-500/10 dark:text-green-400">
+                    <CheckIcon />
+                  </span>
+                 <span className="truncate">Selling points</span>
+                  <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-white/5 dark:text-gray-400">
+                    {tier.whyBoostWorks.length}
+                  </span>
+                </span>
+                <span className="text-gray-400">
+                  <Chevron open={whyOpen} />
+                </span>
               </button>
-            </div>
 
-            {tier.whyBoostWorks.length === 0 ? (
-              <p className="mt-3 rounded-lg border border-dashed border-gray-200 px-4 py-6 text-center text-xs text-gray-400 dark:border-gray-700">
-                No benefits yet. Add the first one.
-              </p>
-            ) : (
-              <ul className="mt-3 space-y-3">
-                {tier.whyBoostWorks.map((w, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="mt-2.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-500 dark:bg-green-500/10 dark:text-green-400">
-                      <CheckIcon />
-                    </span>
-                    <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_110px_90px]">
-                      <TextInput
-                        value={w.title}
-                        onChange={(v) => updateWhy(activeTab, i, { title: v })}
-                        placeholder="Headline"
-                        className="w-full font-bold"
-                      />
-                      <TextInput
-                        value={w.description}
-                        onChange={(v) => updateWhy(activeTab, i, { description: v })}
-                        placeholder="Supporting line"
-                        className="w-full"
-                      />
-                      <TextInput
-                        value={w.tag ?? ""}
-                        onChange={(v) => updateWhy(activeTab, i, { tag: v })}
-                        placeholder="Tag"
-                        className="w-full"
-                      />
-                      <div className="flex items-center gap-2">
-                        
+              {whyOpen && (
+                <div className="space-y-2 border-t border-gray-100 px-3 py-2.5 dark:border-gray-800">
+                  {tier.whyBoostWorks.length === 0 ? (
+                    <p className="py-2 text-center text-[11px] text-gray-400 dark:text-gray-500">
+                      No benefits yet
+                    </p>
+                  ) : (
+                    tier.whyBoostWorks.map((w, i) => (
+                      <div
+                        key={i}
+                        className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_100px_auto]"
+                      >
+                        <MiniInput
+                          value={w.title}
+                          onChange={(v) => updateWhy(activeTab, i, { title: v })}
+                          placeholder="Headline"
+                          className="font-bold"
+                        />
+                        <MiniInput
+                          value={w.description}
+                          onChange={(v) => updateWhy(activeTab, i, { description: v })}
+                          placeholder="Supporting line"
+                        />
+                        <MiniInput
+                          value={w.tag ?? ""}
+                          onChange={(v) => updateWhy(activeTab, i, { tag: v })}
+                          placeholder="Tag"
+                        />
                         <button
                           type="button"
                           onClick={() => removeWhy(activeTab, i)}
                           aria-label="Remove benefit"
-                          className="shrink-0 rounded-lg p-2 text-gray-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+                          className="h-8 rounded-lg border border-gray-200 px-2 text-[11px] font-semibold text-gray-400 transition-colors hover:border-red-300 hover:text-red-500 dark:border-gray-700"
                         >
-                          <TrashIcon />
-                        </button> 
+                          ✕
+                        </button>
                       </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+                    ))
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => addWhy(activeTab)}
+                    className="w-full rounded-lg border border-dashed border-gray-300 py-1.5 text-[11px] font-semibold text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400"
+                  >
+                    + Add benefit
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ---------- Packs (options) ---------- */}
@@ -512,9 +562,7 @@ function BoostsSuperBoostsInner() {
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-gray-900 dark:text-white">
                           <span className="text-xl font-bold">{pack.boostCount}</span>{" "}
-                          <span className="text-sm text-gray-400 dark:text-gray-500">
-                            boosts
-                          </span>
+                          <span className="text-sm text-gray-400 dark:text-gray-500">boosts</span>
                         </p>
                         <button
                           type="button"
@@ -560,9 +608,7 @@ function BoostsSuperBoostsInner() {
                           label="Price / boost"
                           unit="₹"
                           value={pack.pricePerBoost}
-                          onChange={(n) =>
-                            updateOption(activeTab, index, { pricePerBoost: n })
-                          }
+                          onChange={(n) => updateOption(activeTab, index, { pricePerBoost: n })}
                         />
                         <NumField
                           label="Selling price"
@@ -636,71 +682,83 @@ function BoostsSuperBoostsInner() {
             )}
           </div>
 
-          {/* ---------- Boost vs Super Boost ---------- */}
-          <div className="mt-8">
-            <div className="flex items-center justify-between">
-              <SectionLabel>Comparison table</SectionLabel>
+          {/* ---------- Boost vs Super Boost · collapsible ---------- */}
+          <div className="mt-6">
+            <SectionLabel>Comparison table</SectionLabel>
+
+            <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-800">
               <button
                 type="button"
-                onClick={() => addComparisonRow(activeTab)}
-                className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                onClick={() => setCompOpen((v) => !v)}
+                className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
               >
-                + Add row
+                <span className="flex min-w-0 items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-200">
+                  <span className="truncate">
+                    {tier.boostVsSuperBoost.title || "What's the difference?"}
+                  </span>
+                  <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-white/5 dark:text-gray-400">
+                    {tier.boostVsSuperBoost.features.length}
+                  </span>
+                </span>
+                <span className="text-gray-400">
+                  <Chevron open={compOpen} />
+                </span>
               </button>
-            </div>
 
-            <TextInput
-              value={tier.boostVsSuperBoost.title}
-              onChange={(v) => updateComparisonTitle(activeTab, v)}
-              placeholder="What's the difference?"
-              className="mt-3 w-full font-bold md:max-w-sm"
-            />
+              {compOpen && (
+                <div className="space-y-2 border-t border-gray-100 px-3 py-2.5 dark:border-gray-800">
+                  <MiniInput
+                    value={tier.boostVsSuperBoost.title}
+                    onChange={(v) => updateComparisonTitle(activeTab, v)}
+                    placeholder="What's the difference?"
+                    className="font-bold"
+                  />
 
-            <div className="mt-3 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
-              <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_44px] gap-2 bg-[#f5f1ea] px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:bg-white/5 dark:text-gray-400">
-                <span>Feature</span>
-                <span>Boost</span>
-                <span>Super Boost</span>
-                <span />
-              </div>
-              {tier.boostVsSuperBoost.features.length === 0 ? (
-                <p className="px-4 py-6 text-center text-xs text-gray-400">
-                  No comparison rows yet.
-                </p>
-              ) : (
-                tier.boostVsSuperBoost.features.map((row, i) => (
-                  <div
-                    key={i}
-                    className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_44px] items-center gap-2 border-t border-gray-100 px-4 py-2.5 dark:border-gray-800"
+                  {tier.boostVsSuperBoost.features.length === 0 ? (
+                    <p className="py-2 text-center text-[11px] text-gray-400 dark:text-gray-500">
+                      No comparison rows yet
+                    </p>
+                  ) : (
+                    tier.boostVsSuperBoost.features.map((row, i) => (
+                      <div
+                        key={i}
+                        className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                      >
+                        <MiniInput
+                          value={row.feature}
+                          onChange={(v) => updateComparisonRow(activeTab, i, { feature: v })}
+                          placeholder="Feature"
+                        />
+                        <MiniInput
+                          value={row.boost}
+                          onChange={(v) => updateComparisonRow(activeTab, i, { boost: v })}
+                          placeholder="Boost"
+                        />
+                        <MiniInput
+                          value={row.super}
+                          onChange={(v) => updateComparisonRow(activeTab, i, { super: v })}
+                          placeholder="Super Boost"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeComparisonRow(activeTab, i)}
+                          aria-label="Remove row"
+                          className="h-8 rounded-lg border border-gray-200 px-2 text-[11px] font-semibold text-gray-400 transition-colors hover:border-red-300 hover:text-red-500 dark:border-gray-700"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => addComparisonRow(activeTab)}
+                    className="w-full rounded-lg border border-dashed border-gray-300 py-1.5 text-[11px] font-semibold text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400"
                   >
-                    <TextInput
-                      value={row.feature}
-                      onChange={(v) => updateComparisonRow(activeTab, i, { feature: v })}
-                      placeholder="Duration"
-                      className="w-full"
-                    />
-                    <TextInput
-                      value={row.boost}
-                      onChange={(v) => updateComparisonRow(activeTab, i, { boost: v })}
-                      placeholder="30 min"
-                      className="w-full"
-                    />
-                    <TextInput
-                      value={row.super}
-                      onChange={(v) => updateComparisonRow(activeTab, i, { super: v })}
-                      placeholder="3 hours"
-                      className="w-full"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeComparisonRow(activeTab, i)}
-                      aria-label="Remove row"
-                      className="justify-self-center rounded-lg p-2 text-gray-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                ))
+                    + Add row
+                  </button>
+                </div>
               )}
             </div>
           </div>

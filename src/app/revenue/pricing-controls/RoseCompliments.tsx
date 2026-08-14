@@ -37,6 +37,25 @@ function Toggle({
   );
 }
 
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <span
+      className={`shrink-0 text-gray-400 transition-transform ${
+        open ? "rotate-180" : ""
+      }`}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M6 9L12 15L18 9"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
 function CoinIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -140,11 +159,7 @@ function CostRow({
         )}
       </div>
       <div className="flex shrink-0 items-center gap-3">
-        <CoinInput
-          value={value}
-          onChange={onValueChange}
-          onCommit={onValueCommit}
-        />
+        <CoinInput value={value} onChange={onValueChange} onCommit={onValueCommit} />
         <Toggle enabled={enabled} onChange={onToggle} />
       </div>
     </div>
@@ -294,26 +309,26 @@ function InfoRow({
     );
   }
 
-  /* ---------- DISPLAY MODE ---------- */
+  /* ---------- DISPLAY MODE (compact) ---------- */
   return (
     <div
       onClick={onStartEdit}
-      className={`group relative cursor-pointer rounded-xl border border-gray-200 bg-white px-4 py-3 transition-colors hover:border-gray-300 ${
+      className={`group relative cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2 transition-colors hover:border-gray-300 ${
         info.isActive ? "" : "opacity-50"
       }`}
     >
-      <span className="absolute right-3 top-3 hidden rounded-md bg-gray-100 px-2 py-[3px] text-[10px] font-semibold text-gray-500 group-hover:inline-block">
-        Edit ✎
-      </span>
-      <div className="flex items-center gap-2">
-        <p className="text-[13px] font-bold text-gray-900">{info.title}</p>
+      <div className="flex items-center gap-2 pr-8">
+        <p className="shrink-0 text-[12px] font-bold text-gray-900">{info.title}</p>
         {info.tag && (
-          <span className="rounded-full bg-purple-50 px-2 py-[2px] text-[9px] font-bold tracking-wide text-purple-600">
+          <span className="shrink-0 rounded-full bg-purple-50 px-1.5 py-[1px] text-[9px] font-bold tracking-wide text-purple-600">
             {info.tag}
           </span>
         )}
+        <p className="truncate text-[11px] text-gray-400">{info.description}</p>
       </div>
-      <p className="mt-1 text-[12px] text-gray-400">{info.description}</p>
+      <span className="absolute right-2 top-2 hidden rounded bg-gray-100 px-1.5 py-[2px] text-[10px] font-semibold text-gray-500 group-hover:inline-block">
+        ✎
+      </span>
     </div>
   );
 }
@@ -330,79 +345,102 @@ function InfoSection({
   const { infoBusy, createStoreInfo, updateStoreInfo, deleteStoreInfo } =
     usePricingController();
 
+  const [open, setOpen] = useState(false);
   // Which info row is in edit mode: id string, or "new" for the add form
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const blankInfo: StoreInfo = {
-    itemType,
-    title: "",
-    description: "",
-    tag: "",
-    sortOrder:
-      infos.reduce((max, x) => Math.max(max, x.sortOrder), 0) + 1,
-    isActive: true,
-  };
+  const nextSort = infos.reduce((max, x) => Math.max(max, x.sortOrder), 0) + 1;
+
+  // Memoised so a parent re-render doesn't hand InfoRow a brand-new object
+  // and wipe whatever the user has typed into the "add" form.
+  const blankInfo = React.useMemo<StoreInfo>(
+    () => ({
+      itemType,
+      title: "",
+      description: "",
+      tag: "",
+      sortOrder: nextSort,
+      isActive: true,
+    }),
+    [itemType, nextSort],
+  );
+
+  const activeCount = infos.filter((x) => x.isActive).length;
 
   return (
     <div className="pt-4">
-      <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.06em] text-gray-600">
-        {label}
-      </p>
-      <div className="space-y-2.5">
-        {infos.map((info) => (
-          <InfoRow
-            key={info.id}
-            info={info}
-            isEditing={editingId === info.id}
-            busy={infoBusy}
-            onStartEdit={() => setEditingId(info.id ?? null)}
-            onApply={async (patch) => {
-              if (!info.id) return;
-              const ok = await updateStoreInfo(info.id, patch);
-              if (ok) setEditingId(null);
-            }}
-            onDelete={async () => {
-              if (!info.id) return;
-              const ok = window.confirm(`Delete "${info.title}"?`);
-              if (!ok) return;
-              const done = await deleteStoreInfo(info.id);
-              if (done) setEditingId(null);
-            }}
-            onCancel={() => setEditingId(null)}
-          />
-        ))}
+      <div className="rounded-xl border border-gray-200">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
+        >
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-gray-600">
+              {label}
+            </span>
+            <span className="shrink-0 rounded bg-gray-100 px-1.5 py-[2px] text-[10px] font-semibold text-gray-500">
+              {activeCount}/{infos.length}
+            </span>
+          </span>
+          <Chevron open={open} />
+        </button>
 
-        {infos.length === 0 && editingId !== "new" && (
-          <p className="text-[12px] text-gray-400">
-            No info cards yet — add one below.
-          </p>
-        )}
+        {open && (
+          <div className="space-y-2 border-t border-gray-100 px-3 py-2.5">
+            {infos.map((info) => (
+              <InfoRow
+                key={info.id}
+                info={info}
+                isEditing={editingId === info.id}
+                busy={infoBusy}
+                onStartEdit={() => setEditingId(info.id ?? null)}
+                onApply={async (patch) => {
+                  if (!info.id) return;
+                  const ok = await updateStoreInfo(info.id, patch);
+                  if (ok) setEditingId(null);
+                }}
+                onDelete={async () => {
+                  if (!info.id) return;
+                  const ok = window.confirm(`Delete "${info.title}"?`);
+                  if (!ok) return;
+                  const done = await deleteStoreInfo(info.id);
+                  if (done) setEditingId(null);
+                }}
+                onCancel={() => setEditingId(null)}
+              />
+            ))}
 
-        {/* Add new info */}
-        {editingId === "new" ? (
-          <InfoRow
-            info={blankInfo}
-            isEditing
-            busy={infoBusy}
-            onStartEdit={() => {}}
-            onApply={async (patch) => {
-              const ok = await createStoreInfo({
-                ...blankInfo,
-                ...patch,
-              });
-              if (ok) setEditingId(null);
-            }}
-            onDelete={() => {}}
-            onCancel={() => setEditingId(null)}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setEditingId("new")}
-            className="w-full rounded-xl border border-dashed border-gray-300 py-2.5 text-[12px] font-semibold text-gray-400 transition-colors hover:border-gray-400 hover:text-gray-600"
-          >
-            + Add info
-          </button>
+            {infos.length === 0 && editingId !== "new" && (
+              <p className="py-1 text-center text-[11px] text-gray-400">
+                No info cards yet
+              </p>
+            )}
+
+            {/* Add new info */}
+            {editingId === "new" ? (
+              <InfoRow
+                info={blankInfo}
+                isEditing
+                busy={infoBusy}
+                onStartEdit={() => {}}
+                onApply={async (patch) => {
+                  const ok = await createStoreInfo({ ...blankInfo, ...patch });
+                  if (ok) setEditingId(null);
+                }}
+                onDelete={() => {}}
+                onCancel={() => setEditingId(null)}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingId("new")}
+                className="w-full rounded-lg border border-dashed border-gray-300 py-1.5 text-[11px] font-semibold text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700"
+              >
+                + Add info
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -739,9 +777,7 @@ export default function RoseCompliments() {
             </span>
             <div>
               <p className="text-[15px] font-bold text-gray-900">Roses</p>
-              <p className="text-[12px] text-gray-400">
-                Premium attention signal
-              </p>
+              <p className="text-[12px] text-gray-400">Premium attention signal</p>
             </div>
           </div>
 
@@ -784,11 +820,7 @@ export default function RoseCompliments() {
             />
 
             {/* Why roses work — info cards */}
-            <InfoSection
-              itemType="ROSE"
-              label="Why roses work · Info"
-              infos={roseInfo}
-            />
+            <InfoSection itemType="ROSE" label="Why roses work" infos={roseInfo} />
 
             <div className="pt-4">
               <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.06em] text-gray-600">
@@ -807,12 +839,9 @@ export default function RoseCompliments() {
                       unit="roses"
                       busy={saving}
                       isEditing={
-                        editingPack?.type === "ROSE" &&
-                        editingPack?.index === i
+                        editingPack?.type === "ROSE" && editingPack?.index === i
                       }
-                      onStartEdit={() =>
-                        setEditingPack({ type: "ROSE", index: i })
-                      }
+                      onStartEdit={() => setEditingPack({ type: "ROSE", index: i })}
                       onApply={(patch) => applyPack(pack, patch)}
                       onDelete={() => handleDeletePack(pack)}
                       onCancel={() => setEditingPack(null)}
@@ -834,9 +863,7 @@ export default function RoseCompliments() {
             </span>
             <div>
               <p className="text-[15px] font-bold text-gray-900">Compliments</p>
-              <p className="text-[12px] text-gray-400">
-                Message-with-like attention
-              </p>
+              <p className="text-[12px] text-gray-400">Message-with-like attention</p>
             </div>
           </div>
 
@@ -882,7 +909,7 @@ export default function RoseCompliments() {
             {/* Why compliments work — info cards */}
             <InfoSection
               itemType="COMPLIMENT"
-              label="Why compliments work · Info"
+              label="Why compliments work"
               infos={compInfo}
             />
 
