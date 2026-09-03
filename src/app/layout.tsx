@@ -37,6 +37,7 @@ import { LanguageProvider } from "@/context/Languagecontext";
 import { PricingControllerProvider } from "@/context/Pricingcontrollercontext";
 import { BoostSuperProvider } from "@/context/BoostSuperContext";
 import { DatePlanProvider } from "@/context/DatePlanContext";
+import { LegalPoliciesProvider } from "@/context/LegalPoliciesContext";
 
 export default function RootLayout({
   children,
@@ -85,11 +86,13 @@ export default function RootLayout({
                                                               <PricingControllerProvider>
                                                                 <BoostSuperProvider>
                                                                   <DatePlanProvider>
+                                                                    <LegalPoliciesProvider>
                                                     {loading ? (
                                                       <Loader />
                                                     ) : (
                                                       children
                                                     )}
+                                                    </LegalPoliciesProvider>
                                                     </DatePlanProvider>
                                                     </BoostSuperProvider>
                                                     </PricingControllerProvider>

@@ -304,6 +304,85 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     {
       name: "ENGAGEMENT",
       menuItems: [
+          // ================= EVENTS =================
+    {
+      icon: (
+        <svg
+          className="fill-current"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3 4.89 3 6V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.89 20.1 4 19 4ZM19 20H5V9H19V20ZM19 7H5V6H19V7ZM7 11H9V13H7V11ZM11 11H13V13H11V11ZM15 11H17V13H15V11ZM7 15H9V17H7V15ZM11 15H13V17H11V15ZM15 15H17V17H15V15Z"
+            fill="currentColor"
+          />
+        </svg>
+      ),
+      label: "Events",
+      route: "#",
+      children: [
+        {
+          label: "All Events",
+          icon: (
+            <svg
+              className="fill-current"
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 2H15C15.55 2 16 2.45 16 3V15C16 15.55 15.55 16 15 16H3C2.45 16 2 15.55 2 15V3C2 2.45 2.45 2 3 2ZM4 4V14H14V4H4ZM6 6H12V8H6V6ZM6 10H12V12H6V10Z"
+                fill="currentColor"
+              />
+            </svg>
+          ),
+          route: "/admin/events/all-events",
+        },
+        {
+          label: "City Partners",
+          icon: (
+            <svg
+              className="fill-current"
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 1C6.24 1 4 3.24 4 6C4 9.75 9 17 9 17C9 17 14 9.75 14 6C14 3.24 11.76 1 9 1ZM9 8C7.9 8 7 7.1 7 6C7 4.9 7.9 4 9 4C10.1 4 11 4.9 11 6C11 7.1 10.1 8 9 8Z"
+                fill="currentColor"
+              />
+            </svg>
+          ),
+          route: "/admin/events/city-partners",
+        },
+        {
+          label: "Onboard Partners",
+          icon: (
+            <svg
+              className="fill-current"
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 9C11.21 9 13 7.21 13 5C13 2.79 11.21 1 9 1C6.79 1 5 2.79 5 5C5 7.21 6.79 9 9 9ZM9 11C5.67 11 3 12.67 3 15V17H15V15C15 12.67 12.33 11 9 11ZM14 7V9H16V7H14ZM15 6V4H13V6H15Z"
+                fill="currentColor"
+              />
+            </svg>
+          ),
+          route: "/admin/events/onboard-partners",
+        },
+      ],
+    },
         {
           icon: (
             <svg
@@ -362,6 +441,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               route: "/admin/date-now/date-plans/plan-list",
             },
           ],
+          
         },
       ],
     },
@@ -649,8 +729,37 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       ],
     },
     {
-      name: "EMPLOYEE MANAGEMENT",
+      name: "SYSTEM",
       menuItems: [
+         {
+      icon: (
+        <svg
+          className="fill-current"
+          width="18"
+          height="19"
+          viewBox="0 0 18 19"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M9 1.5L2.5 4V8.5C2.5 12.75 5.25 16.25 9 17.5C12.75 16.25 15.5 12.75 15.5 8.5V4L9 1.5Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 9L8 11L12 7"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      label: "Legal & Policies",
+      route: "/admin/legal-policies",
+    },
         {
           icon: (
             <svg
@@ -745,6 +854,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             },
           ],
         },
+        
       ],
     },
   ];

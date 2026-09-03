@@ -219,13 +219,25 @@ const WALL_RULE =
 
 const QUOTA_EMOJI: Record<string, string> = {
   UNLIMITED_LIKES: "❤️",
-  BOOSTS: "🚀",
+  WEEKLY_BOOSTS: "🚀",
   ROSES: "⭐",
-  COMPLIMENTS: "💝",
-  DATE_PLANS: "📅",
+  WEEKLY_COMPLIMENTS: "💝",
+  WEEKLY_DATE_PLANS: "📅",
   REWINDS: "↩️",
   WELCOME_COINS: "🪙",
 };
+const QUOTA_CODES = [
+  "UNLIMITED_LIKES",
+  "WEEKLY_BOOSTS",
+  "ROSES",
+  "WEEKLY_COMPLIMENTS",
+  "WEEKLY_DATE_PLANS",
+  "REWINDS",
+  "WELCOME_COINS",
+] as const;
+
+const isQuotaCode = (code: string) =>
+  (QUOTA_CODES as readonly string[]).includes(code);
 
 const PERIOD_UNIT: Record<string, string> = {
   DAILY: "/day",
@@ -287,6 +299,22 @@ function EditPageInner() {
   const [visibility, setVisibility] = React.useState("");
   const [prices, setPrices] = React.useState<PriceRow[]>([]);
   const [limits, setLimits] = React.useState<LimitRow[]>([]);
+
+  // see-more expand state (per entitlement group)
+  const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(
+    new Set(),
+  );
+
+  const toggleGroupExpand = (category: string) =>
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
 
   React.useEffect(() => {
     let cancelled = false;
@@ -393,17 +421,19 @@ function EditPageInner() {
   const baseMonthly = prices.find((p) => p.months === 1)?.price;
 
   /* ------ derived lists ------ */
-  const quotaRows = limits.filter((l) => l.unlimited || l.limit !== null);
+  const quotaRows = QUOTA_CODES.map((code) =>
+    limits.find((l) => l.code === code),
+  ).filter((l): l is LimitRow => Boolean(l));
 
-const entitlementGroups = React.useMemo(() => {
-  const map = new Map<string, LimitRow[]>();
-  limits.forEach((l) => {
-    const arr = map.get(l.category) ?? [];
-    arr.push(l);
-    map.set(l.category, arr);
-  });
-  return Array.from(map.entries());
-}, [limits]);
+  const entitlementGroups = React.useMemo(() => {
+    const map = new Map<string, LimitRow[]>();
+    limits.forEach((l) => {
+      const arr = map.get(l.category) ?? [];
+      arr.push(l);
+      map.set(l.category, arr);
+    });
+    return Array.from(map.entries());
+  }, [limits]);
 
   const enabledCount = limits.filter((l) => l.enabled).length;
 
@@ -851,6 +881,15 @@ const entitlementGroups = React.useMemo(() => {
               };
               const onCount = rows.filter((r) => r.enabled).length;
               const allOn = onCount === rows.length;
+
+              // quota codes hidden by default — shown on "See more"
+              const isExpanded = expandedGroups.has(category);
+              const alwaysVisible = rows.filter((r) => !isQuotaCode(r.code));
+              const hiddenRows = rows.filter((r) => isQuotaCode(r.code));
+              const visibleRows = isExpanded
+                ? [...alwaysVisible, ...hiddenRows]
+                : alwaysVisible;
+
               return (
                 <div
                   key={category}
@@ -879,7 +918,7 @@ const entitlementGroups = React.useMemo(() => {
 
                   {/* items */}
                   <div className="divide-y divide-gray-50">
-                    {rows.map((item) => (
+                    {visibleRows.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => toggleFeatureEnabled(item.id)}
@@ -911,6 +950,22 @@ const entitlementGroups = React.useMemo(() => {
                         </div>
                       </button>
                     ))}
+
+                    {hiddenRows.length > 0 && (
+                      <button
+                        onClick={() => toggleGroupExpand(category)}
+                        className="flex w-full items-center justify-center gap-1 px-4 py-2.5 text-xs font-bold text-rose-500 transition hover:bg-rose-50/50"
+                      >
+                        {isExpanded
+                          ? "See less"
+                          : `See more (${hiddenRows.length})`}
+                        <ChevronLeftIcon
+                          className={`h-3.5 w-3.5 transition-transform ${
+                            isExpanded ? "rotate-90" : "-rotate-90"
+                          }`}
+                        />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
