@@ -722,12 +722,7 @@ function LegalPoliciesInner() {
             <p className="text-sm text-gray-500">
               Documents members see in the app. Tap one to edit its text.
             </p>
-            <button
-              className="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90"
-              style={{ background: PINK }}
-            >
-              + New document
-            </button>
+           
           </div>
 
           {/* API error banner */}
@@ -773,7 +768,7 @@ function LegalPoliciesInner() {
                 const saving = savingType === t;
                 const rowError = saveError?.type === t ? saveError.message : null;
                 return (
-                  <div key={t} className="overflow-hidden rounded-lg bg-white">
+                 <div key={t} className="rounded-lg bg-white">
                     {/* Row header */}
                     <div className="flex w-full items-center gap-4 px-4 py-3">
                       <button
@@ -848,7 +843,7 @@ function LegalPoliciesInner() {
                         />
 
                         <label className="text-[11px] font-semibold tracking-wide text-gray-400">CONTENT</label>
-                        <div className="sticky top-0 z-10 mb-3 mt-1 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white/95 px-3 py-2 backdrop-blur">
+                        <div className="sticky top-14 z-30 mb-3 mt-1 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
                           <button onMouseDown={(e) => { e.preventDefault(); exec("bold"); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-sm font-bold hover:bg-gray-50">B</button>
                           <button onMouseDown={(e) => { e.preventDefault(); exec("italic"); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-sm italic hover:bg-gray-50">I</button>
                           <button onMouseDown={(e) => { e.preventDefault(); exec("underline"); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-sm underline hover:bg-gray-50">U</button>
