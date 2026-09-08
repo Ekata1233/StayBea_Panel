@@ -266,7 +266,7 @@ export function BoostSuperProvider({ children }: { children: React.ReactNode }) 
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/boost/get-all`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/boost/get`, {
         headers: { "Content-Type": "application/json" },
       });
       const json = await res.json();
