@@ -38,6 +38,7 @@ import { PricingControllerProvider } from "@/context/Pricingcontrollercontext";
 import { BoostSuperProvider } from "@/context/BoostSuperContext";
 import { DatePlanProvider } from "@/context/DatePlanContext";
 import { LegalPoliciesProvider } from "@/context/LegalPoliciesContext";
+import { ReferEarnProvider } from "@/context/RefereEarnContext";
 
 export default function RootLayout({
   children,
@@ -87,11 +88,13 @@ export default function RootLayout({
                                                                 <BoostSuperProvider>
                                                                   <DatePlanProvider>
                                                                     <LegalPoliciesProvider>
+                                                                      <ReferEarnProvider>
                                                     {loading ? (
                                                       <Loader />
                                                     ) : (
                                                       children
                                                     )}
+                                                    </ReferEarnProvider>
                                                     </LegalPoliciesProvider>
                                                     </DatePlanProvider>
                                                     </BoostSuperProvider>

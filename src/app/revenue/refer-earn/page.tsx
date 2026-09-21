@@ -1,7 +1,9 @@
 'use client'
 
 import DefaultLayout from '@/components/Layouts/DefaultLayout'
-import React, { useState } from 'react'
+import { ReferEarnProvider, useReferEarn } from '@/context/RefereEarnContext'
+import React, { useEffect, useState } from 'react'
+
 
 /* ---------------------------------- icons --------------------------------- */
 type IconProps = { className?: string }
@@ -65,7 +67,6 @@ const QuestionIcon = ({ className }: IconProps) => (
   </svg>
 )
 
-// --- icons for the waitlist reward row + editable description points ---
 const ClockIcon = ({ className }: IconProps) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
@@ -132,48 +133,14 @@ const Avatar = ({ name, size = 'h-10 w-10 text-sm' }: { name: string; size?: str
 
 /* --------------------------------- page ----------------------------------- */
 export default function Page() {
-  // Reward amounts (signup / package / waitlist).
-  const [joinReward, setJoinReward] = useState('100')       // signupReward
-  const [planReward, setPlanReward] = useState('500')       // packageReward
-  const [waitlistReward, setWaitlistReward] = useState('300')
+  return (
+    <ReferEarnProvider>
+      <ReferEarnPage />
+    </ReferEarnProvider>
+  )
+}
 
-  // "How Rewards Work" title + member-facing description points.
-  const [rewardTitle, setRewardTitle] = useState('How Rewards Work')
-  const [descriptions, setDescriptions] = useState<string[]>([
-    '₹100 is credited once your friend joins (signs up & logs in) with your code.',
-    '₹500 is credited when that friend activates any paid package (Premium+, VIP or Elite).',
-    'Rewards land in your Welvors wallet and can be withdrawn to UPI / bank.',
-    'Self-referrals or fake accounts are not eligible and may lead to a ban.',
-  ])
-
-  const updateDescription = (i: number, val: string) =>
-    setDescriptions((d) => d.map((x, idx) => (idx === i ? val : x)))
-  const addDescription = () => setDescriptions((d) => [...d, ''])
-  const removeDescription = (i: number) =>
-    setDescriptions((d) => d.filter((_, idx) => idx !== i))
-
-  const handleSaveRules = () => {
-    // Payload shaped to match your API response.
-    const payload = {
-      title: rewardTitle.trim(),
-      signupReward: Number(joinReward) || 0,
-      packageReward: Number(planReward) || 0,
-      waitlistReward: Number(waitlistReward) || 0,
-      descriptions: descriptions
-        .map((d) => d.trim())
-        .filter(Boolean)
-        .map((description, i) => ({ description, sortOrder: i + 1 })),
-    }
-    // TODO: POST `payload` to your rewards-config endpoint.
-    console.log('Save reward rules', payload)
-  }
-
-  const resetRules = () => {
-    setJoinReward('100')
-    setPlanReward('500')
-    setWaitlistReward('300')
-  }
-
+function ReferEarnPage() {
   return (
     <DefaultLayout>
       {/* Page top bar --------------------------------------------------- */}
@@ -260,116 +227,7 @@ export default function Page() {
 
         {/* Middle row ------------------------------------------------------ */}
         <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
-          {/* Reward rules */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-black">Reward rules</h3>
-              <span className="text-xs text-gray-400">Paid to referrer&apos;s wallet</span>
-            </div>
-
-            <div className="space-y-3">
-              <RuleRow
-                icon={<LinkIcon className="h-4 w-4" />}
-                iconClass="bg-indigo-50 text-indigo-500"
-                title="Friend joins with your code"
-                sub="Signs up & logs in to Welvors"
-                value={joinReward}
-                onChange={setJoinReward}
-              />
-              <RuleRow
-                icon={<DiamondIcon className="h-4 w-4" />}
-                iconClass="bg-blue-50 text-blue-500"
-                title="Friend buys any plan"
-                sub="Premium+, VIP or Elite — any package counts"
-                value={planReward}
-                onChange={setPlanReward}
-              />
-              <RuleRow
-                icon={<ClockIcon className="h-4 w-4" />}
-                iconClass="bg-amber-50 text-amber-500"
-                title="Friend joins the waitlist"
-                sub="Reserves early access before launch"
-                value={waitlistReward}
-                onChange={setWaitlistReward}
-              />
-            </div>
-
-            {/* <div className="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
-              Projected burn at current volume:{' '}
-              <span className="font-semibold text-gray-700">₹46.2L</span>
-            </div> */}
-
-            {/* How Rewards Work — editable title + description points */}
-            <div className=" border-t border-gray-100 pt-5">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-500">
-                  <GiftIcon className="h-4 w-4" />
-                </span>
-                <input
-                  type="text"
-                  value={rewardTitle}
-                  onChange={(e) => setRewardTitle(e.target.value)}
-                  placeholder="Section title"
-                  className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-black outline-none focus:border-rose-300"
-                />
-              </div>
-
-              <div className="max-h-32 space-y-2 overflow-y-auto pr-1">
-                {descriptions.map((d, i) => (
-                  <div key={i} className="flex items-start gap-2 rounded-lg border border-gray-100 p-2.5">
-                    <span className="mt-1.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500">
-                      {i + 1}
-                    </span>
-                    <textarea
-                      rows={2}
-                      value={d}
-                      onChange={(e) => updateDescription(i, e.target.value)}
-                      placeholder="Describe this reward rule…"
-                      className="min-w-0 flex-1 resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-rose-300"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeDescription(i)}
-                      className="mt-1 shrink-0 rounded-lg p-2 text-gray-400 hover:bg-rose-50 hover:text-rose-500"
-                      aria-label="Remove point"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-
-                {descriptions.length === 0 && (
-                  <p className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-400">
-                    No points yet. Add one below.
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={addDescription}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-2.5 text-sm font-medium text-gray-600 hover:border-rose-300 hover:text-rose-600"
-              >
-                <PlusIcon className="h-4 w-4" />
-                Add point
-              </button>
-            </div>
-
-            <div className="mt-5 flex items-center gap-3">
-              <button
-                onClick={handleSaveRules}
-                className="rounded-lg bg-rose-500 px-5 py-2 text-sm font-medium text-white hover:bg-rose-600"
-              >
-                Save rules
-              </button>
-              <button
-                onClick={resetRules}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
-              >
-                Reset amounts
-              </button>
-            </div>
-          </div>
+          <RewardRulesCard />
 
           {/* Referral burn breakdown */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -498,6 +356,190 @@ export default function Page() {
         </div>
       </div>
     </DefaultLayout>
+  )
+}
+
+/* --------------------------- Reward rules (API) --------------------------- */
+function RewardRulesCard() {
+  const { config, loading, saving, error, saveConfig, clearError } = useReferEarn()
+
+  const [joinReward, setJoinReward] = useState('')
+  const [planReward, setPlanReward] = useState('')
+  const [waitlistReward, setWaitlistReward] = useState('')
+  const [rewardTitle, setRewardTitle] = useState('')
+  const [descriptions, setDescriptions] = useState<string[]>([])
+  const [savedMsg, setSavedMsg] = useState<string | null>(null)
+
+  // Hydrate form from API whenever config changes (initial load + after save).
+  useEffect(() => {
+    if (!config) return
+    setJoinReward(String(config.signupReward ?? ''))
+    setPlanReward(String(config.packageReward ?? ''))
+    setWaitlistReward(String(config.waitlistReward ?? ''))
+    setRewardTitle(config.title ?? '')
+    setDescriptions(config.descriptions.map((d) => d.description))
+  }, [config])
+
+  const updateDescription = (i: number, val: string) =>
+    setDescriptions((d) => d.map((x, idx) => (idx === i ? val : x)))
+  const addDescription = () => setDescriptions((d) => [...d, ''])
+  const removeDescription = (i: number) =>
+    setDescriptions((d) => d.filter((_, idx) => idx !== i))
+
+  const handleSaveRules = async () => {
+    setSavedMsg(null)
+    clearError()
+    try {
+      await saveConfig({
+        ...(config?.id ? { id: config.id } : {}),
+        title: rewardTitle.trim(),
+        signupReward: Number(joinReward) || 0,
+        packageReward: Number(planReward) || 0,
+        waitlistReward: Number(waitlistReward) || 0,
+        descriptions: descriptions
+          .map((d) => d.trim())
+          .filter(Boolean)
+          .map((description, i) => ({ description, sortOrder: i + 1 })),
+      })
+      setSavedMsg('Reward rules saved')
+      setTimeout(() => setSavedMsg(null), 3000)
+    } catch {
+      /* error is surfaced via context */
+    }
+  }
+
+  // Reset = discard local edits, go back to the last saved server values.
+  const resetRules = () => {
+    if (!config) return
+    setJoinReward(String(config.signupReward))
+    setPlanReward(String(config.packageReward))
+    setWaitlistReward(String(config.waitlistReward))
+    setRewardTitle(config.title)
+    setDescriptions(config.descriptions.map((d) => d.description))
+  }
+
+  const disabled = loading || saving
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-black">Reward rules</h3>
+        <span className="text-xs text-gray-400">
+          {loading ? 'Loading…' : "Paid to referrer's wallet"}
+        </span>
+      </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
+          {error}
+        </div>
+      )}
+      {savedMsg && (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-600">
+          {savedMsg}
+        </div>
+      )}
+
+      <div className={`space-y-3 ${disabled ? 'pointer-events-none opacity-60' : ''}`}>
+        <RuleRow
+          icon={<LinkIcon className="h-4 w-4" />}
+          iconClass="bg-indigo-50 text-indigo-500"
+          title="Friend joins with your code"
+          sub="Signs up & logs in to Welvors"
+          value={joinReward}
+          onChange={setJoinReward}
+        />
+        <RuleRow
+          icon={<DiamondIcon className="h-4 w-4" />}
+          iconClass="bg-blue-50 text-blue-500"
+          title="Friend buys any plan"
+          sub="Premium+, VIP or Elite — any package counts"
+          value={planReward}
+          onChange={setPlanReward}
+        />
+        <RuleRow
+          icon={<ClockIcon className="h-4 w-4" />}
+          iconClass="bg-amber-50 text-amber-500"
+          title="Friend joins the waitlist"
+          sub="Reserves early access before launch"
+          value={waitlistReward}
+          onChange={setWaitlistReward}
+        />
+      </div>
+
+      {/* How Rewards Work — editable title + description points */}
+      <div className={`mt-5 border-t border-gray-100 pt-5 ${disabled ? 'pointer-events-none opacity-60' : ''}`}>
+        <div className="mb-3 flex items-center gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-500">
+            <GiftIcon className="h-4 w-4" />
+          </span>
+          <input
+            type="text"
+            value={rewardTitle}
+            onChange={(e) => setRewardTitle(e.target.value)}
+            placeholder="Section title"
+            className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-black outline-none focus:border-rose-300"
+          />
+        </div>
+
+        <div className="max-h-32 space-y-2 overflow-y-auto pr-1">
+          {descriptions.map((d, i) => (
+            <div key={i} className="flex items-start gap-2 rounded-lg border border-gray-100 p-2.5">
+              <span className="mt-1.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500">
+                {i + 1}
+              </span>
+              <textarea
+                rows={2}
+                value={d}
+                onChange={(e) => updateDescription(i, e.target.value)}
+                placeholder="Describe this reward rule…"
+                className="min-w-0 flex-1 resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-rose-300"
+              />
+              <button
+                type="button"
+                onClick={() => removeDescription(i)}
+                className="mt-1 shrink-0 rounded-lg p-2 text-gray-400 hover:bg-rose-50 hover:text-rose-500"
+                aria-label="Remove point"
+              >
+                <TrashIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+
+          {!loading && descriptions.length === 0 && (
+            <p className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-400">
+              No points yet. Add one below.
+            </p>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={addDescription}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-2.5 text-sm font-medium text-gray-600 hover:border-rose-300 hover:text-rose-600"
+        >
+          <PlusIcon className="h-4 w-4" />
+          Add point
+        </button>
+      </div>
+
+      <div className="mt-5 flex items-center gap-3">
+        <button
+          onClick={handleSaveRules}
+          disabled={disabled}
+          className="rounded-lg bg-rose-500 px-5 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {saving ? 'Saving…' : 'Save rules'}
+        </button>
+        <button
+          onClick={resetRules}
+          disabled={disabled || !config}
+          className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Reset
+        </button>
+      </div>
+    </div>
   )
 }
 
