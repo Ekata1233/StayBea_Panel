@@ -361,7 +361,9 @@ export default function PromptLibrary() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
     const [addingCategory, setAddingCategory] = useState(false)
-
+const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
+  const [editingCategoryName, setEditingCategoryName] = useState('')
+  const [updatingCategory, setUpdatingCategory] = useState(false)
 
   const active = categories.find((c) => c.id === activeId) ?? categories[0]
 
@@ -503,6 +505,110 @@ export default function PromptLibrary() {
     }
   }
 
+const startCategoryEdit = (
+  categoryId: string,
+  currentName: string
+) => {
+  setEditingCategoryId(categoryId)
+  setEditingCategoryName(currentName)
+}
+
+
+const cancelCategoryEdit = () => {
+  setEditingCategoryId(null)
+  setEditingCategoryName('')
+}
+
+
+const updateCategory = async (
+  categoryId: string
+) => {
+  if (updatingCategory) return
+
+  const newName = editingCategoryName.trim()
+
+  if (!newName) {
+    cancelCategoryEdit()
+    return
+  }
+
+  const category = categories.find(
+    (c) => c.id === categoryId
+  )
+
+  if (!category) {
+    cancelCategoryEdit()
+    return
+  }
+
+  // Nothing changed
+  if (category.label === newName) {
+    cancelCategoryEdit()
+    return
+  }
+
+  // Optional duplicate check
+  const duplicate = categories.some(
+    (c) =>
+      c.id !== categoryId &&
+      c.label.toLowerCase() === newName.toLowerCase()
+  )
+
+  if (duplicate) {
+    setError('Category with this name already exists.')
+    return
+  }
+
+  setError(null)
+
+  // Save old state for rollback
+  const snapshot = categories
+
+  // Optimistic frontend update
+  mutateCategory(categoryId, (c) => ({
+    ...c,
+    label: newName,
+  }))
+
+  setUpdatingCategory(true)
+
+  try {
+    const updated = await api<ApiCategory>(
+      `/prompt-category/${categoryId}`,
+      {
+        method: 'PATCH',
+
+        body: JSON.stringify({
+          name: newName,
+        }),
+      }
+    )
+
+    // Use actual backend response
+    mutateCategory(categoryId, (c) => ({
+      ...c,
+      label:
+        updated.name ??
+        updated.label ??
+        updated.title ??
+        newName,
+    }))
+
+    cancelCategoryEdit()
+  } catch (e) {
+    // rollback
+    setCategories(snapshot)
+
+    setError(
+      e instanceof Error
+        ? e.message
+        : 'Could not update category.'
+    )
+  } finally {
+    setUpdatingCategory(false)
+  }
+}
+
   /* ---- category: remove (optimistic + rollback) ----
      Backend rejects with "Category contains prompts." if non-empty.            */
   const removeCategory = async (categoryId: string) => {
@@ -572,7 +678,63 @@ export default function PromptLibrary() {
             <div className="rounded-2xl border border-gray-100 bg-[#faf8f6] p-5">
               {/* Panel header */}
               <div className="mb-2 flex items-center gap-2">
-                <span className="font-semibold text-gray-800">{active.label}</span>
+                {editingCategoryId === active.id ? (
+  <input
+    autoFocus
+    value={editingCategoryName}
+    disabled={updatingCategory}
+    onChange={(e) =>
+      setEditingCategoryName(e.target.value)
+    }
+    onFocus={(e) => e.target.select()}
+    onBlur={() => updateCategory(active.id)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        updateCategory(active.id)
+      }
+
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        cancelCategoryEdit()
+      }
+    }}
+    className="
+      rounded-lg
+      border
+      border-rose-300
+      bg-rose-50
+      px-2
+      py-1
+      text-sm
+      font-semibold
+      text-gray-800
+      focus:outline-none
+      focus:ring-2
+      focus:ring-rose-200
+      disabled:opacity-60
+    "
+  />
+) : (
+  <span
+    onDoubleClick={() =>
+      startCategoryEdit(
+        active.id,
+        active.label
+      )
+    }
+    className="
+      cursor-text
+      font-semibold
+      text-gray-800
+      transition-colors
+      hover:text-rose-600
+    "
+    title="Double-click to edit category"
+  >
+    {active.label}
+  </span>
+)}
                 <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600">
                   {active.prompts.length}
                 </span>
