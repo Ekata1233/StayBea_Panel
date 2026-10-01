@@ -308,7 +308,7 @@ export function BoostSuperProvider({ children }: { children: React.ReactNode }) 
       setError(null);
       try {
         // 1. pack + options. Must run first so the record exists for 2 and 3.
-        await postJSON("/api/boost/create", {
+        await postJSON("/api/admin/boost/create", {
           name: t.name,
           title: t.title,
           description: t.description,
@@ -329,7 +329,7 @@ export function BoostSuperProvider({ children }: { children: React.ReactNode }) 
         });
 
         // 2. numeric features
-        await postJSON("/api/boost/features", {
+        await postJSON("/api/admin/boost/features", {
           name: t.name,
           boostDuration: t.boostDuration,
           singleBoostWalletPrice: t.singleBoostWalletPrice,
@@ -337,7 +337,7 @@ export function BoostSuperProvider({ children }: { children: React.ReactNode }) 
         });
 
         // 3. marketing info
-        await postJSON("/api/boost/info", {
+        await postJSON("/api/admin/boost/info", {
           name: t.name,
           whyBoostWorks: t.whyBoostWorks.map((w) => ({
             icon: w.icon,
