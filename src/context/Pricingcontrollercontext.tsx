@@ -62,7 +62,7 @@ function authHeaders(): HeadersInit {
 /* ================= TYPES ================= */
 
 export type ItemType = "ROSE" | "COMPLIMENT";
-
+export type PackBadge = "NONE" | "MOST_POPULAR" | "BEST_VALUE";
 export interface StoreFeature {
   id?: string;
   itemType: ItemType;
@@ -82,7 +82,7 @@ export interface StorePack {
   quantity: number;
   pricePerUnit: number;
   totalPrice: number;
-  badge: "POPULAR" | "BEST_VALUE" | null;
+  badge: PackBadge;
   sortOrder: number;
   isActive: boolean;
 }
@@ -118,6 +118,14 @@ export interface ComplimentCategory {
 
 /* ================= HELPERS ================= */
 
+/* Badge — must match backend Zod enum: "NONE" | "MOST_POPULAR" | "BEST_VALUE".
+   Maps null/undefined/legacy values so the API never receives an invalid badge. */
+function normalizeBadge(raw: unknown): PackBadge {
+  if (raw === "MOST_POPULAR" || raw === "POPULAR") return "MOST_POPULAR";
+  if (raw === "BEST_VALUE") return "BEST_VALUE";
+  return "NONE";
+}
+
 function parsePack(raw: any): StorePack {
   return {
     id: raw.id,
@@ -126,7 +134,7 @@ function parsePack(raw: any): StorePack {
     quantity: Number(raw.quantity),
     pricePerUnit: Number(raw.pricePerUnit), // API returns strings ("30")
     totalPrice: Number(raw.totalPrice),
-    badge: raw.badge ?? null,
+    badge: normalizeBadge(raw.badge),
     sortOrder: Number(raw.sortOrder ?? 0),
     isActive: Boolean(raw.isActive),
   };
@@ -441,7 +449,7 @@ export function PricingControllerProvider({
         quantity: pack.quantity,
         pricePerUnit: pack.pricePerUnit,
         totalPrice: pack.quantity * pack.pricePerUnit,
-        badge: pack.badge,
+        badge: normalizeBadge(pack.badge),
         sortOrder: pack.sortOrder,
         isActive: pack.isActive,
       });
@@ -460,6 +468,7 @@ export function PricingControllerProvider({
 
       const saved: StorePack = {
         ...pack,
+        badge: normalizeBadge(pack.badge),
         totalPrice: pack.quantity * pack.pricePerUnit,
       };
       const setter = pack.itemType === "ROSE" ? setRosePacks : setCompPacks;

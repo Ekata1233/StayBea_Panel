@@ -494,7 +494,7 @@ function PackCard({
   const badgeLabel =
     pack.badge === "BEST_VALUE"
       ? "BEST VALUE"
-      : pack.badge === "POPULAR"
+      : pack.badge === "MOST_POPULAR"
         ? "POPULAR"
         : null;
 
@@ -553,18 +553,14 @@ function PackCard({
             <div>
               <label className={labelClass}>Badge</label>
               <select
-                value={badge ?? ""}
+                value={badge}
                 onChange={(e) =>
-                  setBadge(
-                    e.target.value === ""
-                      ? null
-                      : (e.target.value as StorePack["badge"]),
-                  )
+                  setBadge(e.target.value as StorePack["badge"])
                 }
                 className={inputClass}
               >
-                <option value="">None</option>
-                <option value="POPULAR">POPULAR</option>
+                <option value="NONE">None</option>
+                <option value="MOST_POPULAR">POPULAR</option>
                 <option value="BEST_VALUE">BEST VALUE</option>
               </select>
             </div>
@@ -634,7 +630,7 @@ function PackCard({
       {badgeLabel && (
         <span
           className={`absolute -top-[10px] right-3 rounded-md px-2 py-[3px] text-[9px] font-bold tracking-wide text-white ${
-            pack.badge === "POPULAR" ? "bg-[#f43f5e]" : "bg-[#f59e0b]"
+            pack.badge === "MOST_POPULAR" ? "bg-[#f43f5e]" : "bg-[#f59e0b]"
           }`}
         >
           {badgeLabel}
