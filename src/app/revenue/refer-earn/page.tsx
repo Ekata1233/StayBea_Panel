@@ -444,8 +444,8 @@ function RewardRulesCard() {
         <RuleRow
           icon={<LinkIcon className="h-4 w-4" />}
           iconClass="bg-indigo-50 text-indigo-500"
-          title="Friend joins with your code"
-          sub="Signs up & logs in to Welvors"
+          title="Referral Reward"
+          sub="Earn a reward when someone uses your referral code"
           value={joinReward}
           onChange={setJoinReward}
         />
@@ -460,8 +460,8 @@ function RewardRulesCard() {
         <RuleRow
           icon={<ClockIcon className="h-4 w-4" />}
           iconClass="bg-amber-50 text-amber-500"
-          title="Friend joins the waitlist"
-          sub="Reserves early access before launch"
+          title="Signup Reward"
+          sub="Earn a reward when you use someone's referral code."
           value={waitlistReward}
           onChange={setWaitlistReward}
         />
