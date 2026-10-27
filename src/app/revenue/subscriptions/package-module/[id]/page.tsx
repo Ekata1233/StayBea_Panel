@@ -168,7 +168,7 @@ const ROSE_ACCENT: Accent = {
   groupBtn: "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100",
   headerBtn: "bg-rose-500 hover:bg-rose-600",
   headerPill: "bg-rose-50 text-rose-600",
-  unlimitedActive: "border-rose-200 bg-rose-50 text-rose-600", // ← add
+  unlimitedActive: "border-rose-200 bg-rose-50 text-rose-600",
 };
 
 const AMBER_ACCENT: Accent = {
@@ -176,7 +176,7 @@ const AMBER_ACCENT: Accent = {
   groupBtn: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100",
   headerBtn: "bg-amber-500 hover:bg-amber-600",
   headerPill: "bg-amber-50 text-amber-700",
-  unlimitedActive: "border-amber-200 bg-amber-50 text-amber-700", // ← add
+  unlimitedActive: "border-amber-200 bg-amber-50 text-amber-700",
 };
 
 const DARK_ACCENT: Accent = {
@@ -184,7 +184,7 @@ const DARK_ACCENT: Accent = {
   groupBtn: "border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200",
   headerBtn: "bg-gray-900 hover:bg-black",
   headerPill: "bg-gray-100 text-gray-800",
-  unlimitedActive: "border-gray-300 bg-gray-100 text-gray-800", // ← add
+  unlimitedActive: "border-gray-300 bg-gray-100 text-gray-800",
 };
 
 const STATIC_CONFIG: Record<
@@ -256,15 +256,78 @@ const CATEGORY_DISPLAY: Record<string, { emoji: string; title: string }> = {
   PERKS: { emoji: "🎁", title: "Perks & rewards" },
 };
 
+/* ------------------------------ helpers ------------------------------ */
+const inr = (n: number) =>
+  `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+
+const monthsLabel = (m: number | "") =>
+  m === "" || m <= 0 ? "— months" : m === 1 ? "1 month" : `${m} months`;
+
+const toNum = (v: unknown): number | null => {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
 /* ------------------------------ form types ------------------------------ */
+type NumField = number | "";
+
 type PriceRow = {
   id: string;
   billingCycle: "MONTHLY" | "QUARTERLY" | "YEARLY";
-  label: string;
-  months: number;
-  price: number | "";
+  months: NumField;
+  price: NumField; // TOTAL price for the whole period (what user pays)
   isHighlighted: boolean;
   active: boolean;
+};
+
+type PriceCalc = {
+  months: number;
+  total: number; // → PackagePrice.originalPrice
+  perMonth: number; // total / months → PackagePrice.price
+  original: number | null; // 1-mo price × months (display only, not saved)
+  discount: number; // → PackagePrice.discountPercent
+  saveAmount: number;
+  error: string | null;
+};
+
+/**
+ * App formula:
+ *   original  = 1-month price × months      (699 × 3 = 2,097)
+ *   discount  = 1 − total / original        (1 − 1799/2097 = 14%)
+ *   per month = total / months              (1799 / 3 ≈ 600)
+ */
+const calcPrice = (t: PriceRow, base: number | undefined): PriceCalc => {
+  const months = typeof t.months === "number" ? t.months : 0;
+  const total = typeof t.price === "number" ? t.price : 0;
+  const isBase = months === 1;
+
+  const original =
+    isBase ? total : base && base > 0 && months > 0 ? base * months : null;
+
+  const discount =
+    !isBase && original && total > 0 && total < original
+      ? Math.round((1 - total / original) * 100)
+      : 0;
+
+  const perMonth = months > 0 ? Math.round(total / months) : 0;
+
+  let error: string | null = null;
+  if (months < 1) error = "Months must be at least 1.";
+  else if (total <= 0) error = "Total price is required.";
+  else if (!isBase && !base) error = "Set the 1-month price first.";
+  else if (!isBase && original !== null && total > original)
+    error = `Total is higher than ${months} × 1-month price (${inr(original)}) — no saving.`;
+
+  return {
+    months,
+    total,
+    perMonth,
+    original,
+    discount,
+    saveAmount: original ? Math.max(0, original - total) : 0,
+    error,
+  };
 };
 
 type LimitRow = {
@@ -300,7 +363,6 @@ function EditPageInner() {
   const [prices, setPrices] = React.useState<PriceRow[]>([]);
   const [limits, setLimits] = React.useState<LimitRow[]>([]);
 
-  // see-more expand state (per entitlement group)
   const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(
     new Set(),
   );
@@ -308,11 +370,8 @@ function EditPageInner() {
   const toggleGroupExpand = (category: string) =>
     setExpandedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(category)) {
-        next.delete(category);
-      } else {
-        next.add(category);
-      }
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
       return next;
     });
 
@@ -330,16 +389,26 @@ function EditPageInner() {
         setVisibility(d.visibilityRule);
         setPrices(
           [...d.prices]
-            .sort((a, b) => a.months - b.months)
-            .map((p) => ({
-              id: p.id,
-              billingCycle: p.billingCycle,
-              label: p.months === 1 ? "1 month" : `${p.months} months`,
-              months: p.months,
-              price: Number(p.price) || 0,
-              isHighlighted: p.isHighlighted,
-              active: p.active,
-            })),
+            .sort((a, b) => (a.months ?? 0) - (b.months ?? 0))
+            .map((p) => {
+              // DB: price = per month, originalPrice = total for the period
+              const raw = p as typeof p & {
+                originalPrice?: string | number | null;
+              };
+              const months =
+                p.months ?? (p.billingCycle === "MONTHLY" ? 1 : 0);
+              const perMonth = toNum(p.price) ?? 0;
+              const total =
+                toNum(raw.originalPrice) ?? Math.round(perMonth * months);
+              return {
+                id: p.id,
+                billingCycle: p.billingCycle,
+                months: months || "",
+                price: total, // form field = TOTAL entered by admin
+                isHighlighted: p.isHighlighted,
+                active: p.active,
+              };
+            })
         );
         setLimits(
           d.limits.map((l) => ({
@@ -389,7 +458,7 @@ function EditPageInner() {
       ),
     );
 
-  /* ------ entitlement helpers — limits state pe (enabled flag) ------ */
+  /* ------ entitlement helpers ------ */
   const toggleFeatureEnabled = (id: string) =>
     setLimits((prev) =>
       prev.map((l) => (l.id === id ? { ...l, enabled: !l.enabled } : l)),
@@ -404,13 +473,19 @@ function EditPageInner() {
     setLimits((prev) => prev.map((l) => ({ ...l, enabled: true })));
 
   /* ------ price helpers ------ */
-  const setPrice = (id: string, raw: string) =>
+  const setPriceField = (
+    id: string,
+    field: "months" | "price",
+    raw: string,
+  ) =>
     setPrices((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, price: raw === "" ? "" : Math.max(0, Number(raw) || 0) }
-          : p,
-      ),
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        if (raw === "") return { ...p, [field]: "" };
+        let n = Math.max(0, Number(raw) || 0);
+        if (field === "months") n = Math.floor(n);
+        return { ...p, [field]: n };
+      }),
     );
 
   const toggleActive = (id: string) =>
@@ -418,7 +493,26 @@ function EditPageInner() {
       prev.map((p) => (p.id === id ? { ...p, active: !p.active } : p)),
     );
 
-  const baseMonthly = prices.find((p) => p.months === 1)?.price;
+  // only one tier can be highlighted; clicking the highlighted one clears it
+  const setHighlighted = (id: string) =>
+    setPrices((prev) =>
+      prev.map((p) => ({
+        ...p,
+        isHighlighted: p.id === id ? !p.isHighlighted : false,
+      })),
+    );
+
+  const baseRow = prices.find((p) => p.months === 1);
+  const baseMonthly =
+    baseRow && typeof baseRow.price === "number" ? baseRow.price : undefined;
+
+  const priceCalcs = React.useMemo(
+    () => new Map(prices.map((p) => [p.id, calcPrice(p, baseMonthly)])),
+    [prices, baseMonthly],
+  );
+  const pricingErrors = prices.filter(
+    (p) => p.active && priceCalcs.get(p.id)?.error,
+  );
 
   /* ------ derived lists ------ */
   const quotaRows = QUOTA_CODES.map((code) =>
@@ -440,6 +534,10 @@ function EditPageInner() {
   /* ------ save ------ */
   const handleSave = async () => {
     if (!detail) return;
+    if (pricingErrors.length > 0) {
+      alert("Fix the pricing errors before saving.");
+      return;
+    }
     setSaving(true);
     try {
       await updatePackage(detail.id, {
@@ -447,13 +545,18 @@ function EditPageInner() {
         tagline,
         badgeLabel: badge,
         visibilityRule: visibility,
-        prices: prices.map((p) => ({
-          billingCycle: p.billingCycle,
-          months: p.months,
-          price: typeof p.price === "number" ? p.price : 0,
-          isHighlighted: p.isHighlighted,
-          active: p.active,
-        })),
+        prices: prices.map((p) => {
+          const c = calcPrice(p, baseMonthly);
+          return {
+            billingCycle: p.billingCycle,
+            months: c.months,
+            price: c.perMonth, // per month  (1799 / 3 → 600)
+            originalPrice: c.total, // total for the period (1799)
+            discountPercent: c.discount, // vs 1-month price × months (14)
+            isHighlighted: p.isHighlighted,
+            active: p.active,
+          };
+        }),
         limits: limits.map((l) => ({
           featureCode: l.code,
           enabled: l.enabled,
@@ -492,10 +595,11 @@ function EditPageInner() {
   }
 
   const cfg = STATIC_CONFIG[detail.name] ?? STATIC_CONFIG.PREMIUM;
+  const offeredCount = prices.filter((p) => p.active).length;
 
   return (
     <>
-      {/* Page top bar — sticky --------------------------------------------- */}
+      {/* Page top bar ------------------------------------------------------ */}
       <div className="sticky top-0 z-30 flex flex-col gap-3 border-b border-gray-200 bg-[#f7f6f5] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-bold text-black">
@@ -530,7 +634,6 @@ function EditPageInner() {
         </div>
       </div>
 
-      {/* pb-28 → fixed bottom bar ke liye jagah */}
       <div className="max-w-8xl mx-auto px-6 py-6 pb-28">
         {/* Hero banner ---------------------------------------------------- */}
         <div className={`rounded-3xl ${cfg.heroGradient} p-8 text-white`}>
@@ -567,7 +670,7 @@ function EditPageInner() {
               label="FROM"
               value={
                 typeof baseMonthly === "number"
-                  ? `₹${baseMonthly.toLocaleString("en-IN")}/mo`
+                  ? `${inr(baseMonthly)}/mo`
                   : "—"
               }
             />
@@ -653,7 +756,6 @@ function EditPageInner() {
                   />
                 </Field>
 
-                {/* Wall rule strip */}
                 <div className="flex items-start gap-2 rounded-xl bg-[#f3efe9] px-4 py-3 text-sm text-gray-600">
                   <BanIcon className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
                   <p>
@@ -664,101 +766,6 @@ function EditPageInner() {
               </div>
             </div>
 
-            {/* ---------- Pricing ---------- */}
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-              <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-4">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50">
-                  <CardIcon className="h-5 w-5 text-amber-500" />
-                </span>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900">Pricing</h3>
-                  <p className="text-xs text-gray-400">
-                    Set the monthly rate · total &amp; savings auto-calculated
-                  </p>
-                </div>
-              </div>
-
-              <div className="divide-y divide-gray-100 px-6">
-                {prices.map((t) => {
-                  const rateNum = typeof t.price === "number" ? t.price : 0;
-                  const total = rateNum * t.months;
-                  const save =
-                    typeof baseMonthly === "number" &&
-                    baseMonthly > 0 &&
-                    rateNum > 0 &&
-                    t.months !== 1
-                      ? Math.round((1 - rateNum / baseMonthly) * 100)
-                      : 0;
-
-                  return (
-                    <div key={t.id} className="py-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <StarIcon
-                            filled={t.isHighlighted}
-                            className={`h-5 w-5 shrink-0 ${
-                              t.isHighlighted
-                                ? "text-amber-500"
-                                : "text-amber-400"
-                            }`}
-                          />
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-bold text-gray-900">
-                              {t.label}
-                            </p>
-                            {t.isHighlighted && (
-                              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold tracking-widest text-amber-600">
-                                HIGHLIGHTED
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-3">
-                          <div className="flex items-center overflow-hidden rounded-xl border border-gray-200">
-                            <span className="flex h-10 w-8 items-center justify-center bg-gray-50 text-sm text-gray-500">
-                              ₹
-                            </span>
-                            <input
-                              type="number"
-                              value={t.price}
-                              onChange={(e) => setPrice(t.id, e.target.value)}
-                              className="h-10 w-20 border-0 bg-white px-2 text-sm font-semibold text-gray-900 outline-none"
-                            />
-                            <span className="flex h-10 items-center bg-white pr-3 text-xs text-gray-400">
-                              /mo
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => toggleActive(t.id)}
-                            className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-                              t.active
-                                ? "bg-[#f3efe9] text-amber-700"
-                                : "border border-gray-200 bg-white text-gray-400"
-                            }`}
-                          >
-                            {t.active ? "Offered" : "Off"}
-                          </button>
-                        </div>
-                      </div>
-
-                      <p className="mt-1.5 pl-8 text-xs text-gray-500">
-                        Total ₹{total.toLocaleString("en-IN")} for {t.months} mo
-                        {save > 0 && (
-                          <>
-                            {" "}
-                            ·{" "}
-                            <span className="font-bold text-emerald-600">
-                              save {save}%
-                            </span>
-                          </>
-                        )}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
           {/* right column */}
@@ -839,9 +846,164 @@ function EditPageInner() {
           </div>
         </div>
 
-        {/* ---------- Feature entitlements — limits.enabled se ---------- */}
+        {/* ---------- Pricing — full width, 4 cards per row ---------- */}
         <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
-          {/* header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50">
+                <CardIcon className="h-5 w-5 text-amber-500" />
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Pricing</h3>
+                <p className="text-xs text-gray-400">
+                  Enter months &amp; total price · original, discount &amp;
+                  per-month auto-calculated from the 1-month price
+                </p>
+              </div>
+            </div>
+            <span className="rounded-full bg-[#f3efe9] px-3 py-1.5 text-xs font-bold text-amber-700">
+              {offeredCount}/{prices.length} offered
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 p-4 pt-6 sm:grid-cols-2 xl:grid-cols-4">
+            {prices.map((t) => {
+              const c = priceCalcs.get(t.id) ?? calcPrice(t, baseMonthly);
+              const isBase = t.billingCycle === "MONTHLY";
+
+              return (
+                <div
+                  key={t.id}
+                  className={`relative flex flex-col rounded-2xl border-2 p-4 pt-5 transition ${
+                    t.isHighlighted
+                      ? "border-rose-400 bg-rose-50/50"
+                      : "border-gray-200 bg-white"
+                  } ${t.active ? "" : "opacity-60"}`}
+                >
+                  {/* SAVE badge — same as app */}
+                  {c.discount > 0 && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-rose-500 px-3 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                      SAVE {c.discount}%
+                    </span>
+                  )}
+
+                  {/* header */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setHighlighted(t.id)}
+                        title={
+                          t.isHighlighted
+                            ? "Remove highlight"
+                            : "Highlight this tier in the app"
+                        }
+                        className="shrink-0 rounded-full p-0.5 transition hover:bg-amber-100"
+                      >
+                        <StarIcon
+                          filled={t.isHighlighted}
+                          className="h-5 w-5 text-amber-500"
+                        />
+                      </button>
+                      <p className="truncate text-sm font-bold text-gray-900">
+                        {monthsLabel(t.months)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleActive(t.id)}
+                      className={`shrink-0 rounded-lg px-3 py-1 text-[11px] font-bold transition ${
+                        t.active
+                          ? "bg-[#f3efe9] text-amber-700"
+                          : "border border-gray-200 bg-white text-gray-400"
+                      }`}
+                    >
+                      {t.active ? "Offered" : "Off"}
+                    </button>
+                  </div>
+
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold tracking-widest text-gray-500">
+                      {t.billingCycle}
+                    </span>
+                    {t.isHighlighted && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold tracking-widest text-amber-700">
+                        HIGHLIGHTED
+                      </span>
+                    )}
+                  </div>
+
+                  {/* price summary — mirrors the app card */}
+                  <div className="mt-4 rounded-xl bg-[#f7f5f2] px-3 py-3 text-center">
+                    <p className="text-[10px] font-bold tracking-widest text-gray-500">
+                      {c.months || "—"} MO
+                    </p>
+                    <p className="mt-0.5 text-xl font-bold text-gray-900">
+                      {inr(c.total)}
+                    </p>
+                    {c.original !== null && c.original > c.total && (
+                      <p className="text-xs text-gray-400 line-through">
+                        {inr(c.original)}
+                      </p>
+                    )}
+                    <p className="mt-0.5 text-xs text-gray-500">
+                      {inr(c.perMonth)}/mo
+                    </p>
+                  </div>
+
+                  {/* inputs — only months + total */}
+                  <div className="mt-4 space-y-3">
+                    <PriceInput
+                      label="MONTHS"
+                      hint={isBase ? "base tier" : undefined}
+                      value={t.months}
+                      min={1}
+                      disabled={isBase}
+                      onChange={(v) => setPriceField(t.id, "months", v)}
+                      suffix="mo"
+                    />
+                    <PriceInput
+                      label={isBase ? "PRICE (1 MONTH)" : "TOTAL PRICE"}
+                      hint={isBase ? "base for all discounts" : undefined}
+                      value={t.price}
+                      onChange={(v) => setPriceField(t.id, "price", v)}
+                      prefix="₹"
+                      strong
+                    />
+                  </div>
+
+                  {/* auto-calculated */}
+                  <div className="mt-4 grid grid-cols-2 gap-x-2 gap-y-3 border-t border-gray-100 pt-3">
+                    <CalcStat
+                      label="Original"
+                      value={c.original !== null ? inr(c.original) : "—"}
+                    />
+                    <CalcStat label="Per month" value={`${inr(c.perMonth)}/mo`} />
+                    <CalcStat
+                      label="Discount"
+                      value={isBase ? "Base" : `${c.discount}%`}
+                      tone={c.discount > 0 ? "good" : undefined}
+                    />
+                    <CalcStat
+                      label="User saves"
+                      value={c.saveAmount > 0 ? inr(c.saveAmount) : "—"}
+                      tone={c.saveAmount > 0 ? "good" : undefined}
+                    />
+                  </div>
+
+                  {c.error && t.active && (
+                    <p className="mt-2 text-xs font-semibold text-red-500">
+                      {c.error}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ---------- Feature entitlements ---------- */}
+        <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-base">
@@ -872,7 +1034,6 @@ function EditPageInner() {
             </div>
           </div>
 
-          {/* groups grid */}
           <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2">
             {entitlementGroups.map(([category, rows]) => {
               const display = CATEGORY_DISPLAY[category] ?? {
@@ -882,7 +1043,6 @@ function EditPageInner() {
               const onCount = rows.filter((r) => r.enabled).length;
               const allOn = onCount === rows.length;
 
-              // quota codes hidden by default — shown on "See more"
               const isExpanded = expandedGroups.has(category);
               const alwaysVisible = rows.filter((r) => !isQuotaCode(r.code));
               const hiddenRows = rows.filter((r) => isQuotaCode(r.code));
@@ -895,7 +1055,6 @@ function EditPageInner() {
                   key={category}
                   className="rounded-xl border border-gray-200 bg-white"
                 >
-                  {/* group header */}
                   <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span className="text-sm">{display.emoji}</span>
@@ -916,7 +1075,6 @@ function EditPageInner() {
                     </div>
                   </div>
 
-                  {/* items */}
                   <div className="divide-y divide-gray-50">
                     {visibleRows.map((item) => (
                       <button
@@ -977,9 +1135,16 @@ function EditPageInner() {
       {/* Fixed bottom save bar ------------------------------------------- */}
       <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-3 lg:left-[290px]">
         <div className="max-w-8xl mx-auto flex items-center gap-4 rounded-2xl border border-gray-200 bg-white px-5 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
-          <p className="text-sm text-gray-500">
-            <span className="font-bold text-gray-900">{cfg.displayName}</span> ·
-            changes apply the moment you save
+          <p className="flex-1 text-sm text-gray-500">
+            <span className="font-bold text-gray-900">{cfg.displayName}</span> ·{" "}
+            {pricingErrors.length > 0 ? (
+              <span className="font-semibold text-red-500">
+                {pricingErrors.length} pricing issue
+                {pricingErrors.length > 1 ? "s" : ""} to fix
+              </span>
+            ) : (
+              "changes apply the moment you save"
+            )}
           </p>
           <button
             onClick={() => router.push("/revenue/subscriptions")}
@@ -989,7 +1154,7 @@ function EditPageInner() {
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || pricingErrors.length > 0}
             className="rounded-full bg-gradient-to-r from-rose-400 to-rose-500 px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:from-rose-500 hover:to-rose-600 disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save changes"}
@@ -1053,6 +1218,101 @@ function Field({
         )}
       </p>
       {children}
+    </div>
+  );
+}
+
+function PriceInput({
+  label,
+  hint,
+  value,
+  onChange,
+  prefix,
+  suffix,
+  placeholder,
+  min = 0,
+  disabled,
+  strong,
+}: {
+  label: string;
+  hint?: string;
+  value: number | "";
+  onChange: (raw: string) => void;
+  prefix?: string;
+  suffix?: string;
+  placeholder?: string;
+  min?: number;
+  disabled?: boolean;
+  strong?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[10px] font-bold tracking-widest text-gray-500">
+        {label}
+        {hint && (
+          <span className="ml-1.5 font-normal normal-case tracking-normal text-gray-400">
+            · {hint}
+          </span>
+        )}
+      </span>
+      <div
+        className={`flex items-center overflow-hidden rounded-xl border bg-white ${
+          strong ? "border-amber-300" : "border-gray-200"
+        } ${disabled ? "bg-gray-50 opacity-70" : "focus-within:border-rose-300"}`}
+      >
+        {prefix && (
+          <span className="flex h-10 w-8 shrink-0 items-center justify-center bg-gray-50 text-sm text-gray-500">
+            {prefix}
+          </span>
+        )}
+        <input
+          type="number"
+          inputMode="decimal"
+          min={min}
+          value={value}
+          placeholder={placeholder}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.value)}
+          className={`h-10 w-full min-w-0 border-0 bg-transparent px-2 text-sm text-gray-900 outline-none placeholder:font-normal placeholder:text-gray-300 disabled:cursor-not-allowed ${
+            strong ? "font-bold" : "font-semibold"
+          }`}
+        />
+        {suffix && (
+          <span className="flex h-10 shrink-0 items-center pr-3 text-xs text-gray-400">
+            {suffix}
+          </span>
+        )}
+      </div>
+    </label>
+  );
+}
+
+function CalcStat({
+  label,
+  value,
+  strike,
+  tone,
+}: {
+  label: string;
+  value: string;
+  strike?: string;
+  tone?: "good";
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold text-gray-400">{label}</p>
+      <p
+        className={`text-sm font-bold ${
+          tone === "good" ? "text-emerald-600" : "text-gray-900"
+        }`}
+      >
+        {value}
+        {strike && (
+          <span className="ml-1.5 text-[11px] font-normal text-gray-400 line-through">
+            {strike}
+          </span>
+        )}
+      </p>
     </div>
   );
 }

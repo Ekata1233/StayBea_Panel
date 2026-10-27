@@ -536,12 +536,9 @@ const [whyOpen, setWhyOpen] = useState(false);
             ) : (
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 {tier.options.map((pack, index) => {
-                  const base = (pack.boostCount || 0) * (pack.pricePerBoost || 0);
-                  const pays = pack.discounted_price || 0;
-                  const offPct =
-                    base > 0 && pays > 0 && pays < base
-                      ? Math.round(((base - pays) / base) * 100)
-                      : 0;
+                  /* Simple pricing: total = count × price per boost (no discount).
+                     discounted_price is kept equal to total so backend gets the same value. */
+                  const total = (pack.boostCount || 0) * (pack.pricePerBoost || 0);
 
                   return (
                     <div
@@ -574,7 +571,7 @@ const [whyOpen, setWhyOpen] = useState(false);
                         </button>
                       </div>
 
-                      {/* fields · 2 per row */}
+                      {/* fields */}
                       <div className="mt-3 grid grid-cols-2 gap-2.5">
                         <label className="col-span-2 block min-w-0">
                           <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
@@ -595,7 +592,12 @@ const [whyOpen, setWhyOpen] = useState(false);
                           label="Boost count"
                           unit="#"
                           value={pack.boostCount}
-                          onChange={(n) => updateOption(activeTab, index, { boostCount: n })}
+                          onChange={(n) =>
+                            updateOption(activeTab, index, {
+                              boostCount: n,
+                              discounted_price: (n || 0) * (pack.pricePerBoost || 0),
+                            })
+                          }
                         />
                         <NumField
                           label="Time / boost"
@@ -604,41 +606,28 @@ const [whyOpen, setWhyOpen] = useState(false);
                           onChange={(n) => updateOption(activeTab, index, { timePerBoost: n })}
                         />
 
-                        <NumField
-                          label="Price / boost"
-                          unit="₹"
-                          value={pack.pricePerBoost}
-                          onChange={(n) => updateOption(activeTab, index, { pricePerBoost: n })}
-                        />
-                        <NumField
-                          label="Selling price"
-                          unit="₹"
-                          value={pack.discounted_price}
-                          onChange={(n) =>
-                            updateOption(activeTab, index, { discounted_price: n })
-                          }
-                        />
+                        <div className="col-span-2">
+                          <NumField
+                            label="Price per boost"
+                            unit="₹"
+                            value={pack.pricePerBoost}
+                            onChange={(n) =>
+                              updateOption(activeTab, index, {
+                                pricePerBoost: n,
+                                discounted_price: (pack.boostCount || 0) * (n || 0),
+                              })
+                            }
+                          />
+                        </div>
                       </div>
 
-                      {/* totals · single line */}
+                      {/* total · single line */}
                       <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-2.5 dark:border-gray-800">
                         <span className="text-[11px] text-gray-400 dark:text-gray-500">
-                          Member pays
+                          Total pack
                         </span>
-                        <span className="flex items-baseline gap-1.5">
-                          {offPct > 0 && (
-                            <span className="text-[11px] text-gray-400 line-through dark:text-gray-500">
-                              {formatINR(base)}
-                            </span>
-                          )}
-                          <span className="text-base font-bold text-green-600 dark:text-green-400">
-                            {formatINR(pays)}
-                          </span>
-                          {offPct > 0 && (
-                            <span className="text-[10px] font-semibold text-gray-400">
-                              −{offPct}%
-                            </span>
-                          )}
+                        <span className="text-base font-bold text-gray-900 dark:text-white">
+                          {formatINR(total)}
                         </span>
                       </div>
 
