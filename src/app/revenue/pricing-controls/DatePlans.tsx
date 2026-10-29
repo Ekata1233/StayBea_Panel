@@ -111,22 +111,56 @@ const Field = ({
   </label>
 );
 
+/** Popular / Best Value flag button */
+const FlagButton = ({
+  on,
+  busy,
+  disabled,
+  onLabel,
+  offLabel,
+  onClick,
+}: {
+  on: boolean;
+  busy: boolean;
+  disabled: boolean;
+  onLabel: string;
+  offLabel: string;
+  onClick: () => void;
+}) => (
+  <button
+    type="button"
+    disabled={disabled || busy}
+    onClick={onClick}
+    aria-pressed={on}
+    className={`h-9 rounded-lg border px-2 text-[11px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+      on
+        ? "border-pink-200 bg-pink-50 text-pink-500 hover:bg-pink-100 dark:border-pink-500/30 dark:bg-pink-500/10 dark:text-pink-400"
+        : "border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-500 dark:border-gray-700 dark:text-gray-300"
+    }`}
+  >
+    {busy ? "Saving…" : on ? onLabel : offLabel}
+  </button>
+);
+
 /* ================= Pack Card (edit-only, 2-col fields) ================= */
 
 const emptyDraft = (p: DatePlanPackage) => ({
   title: p.title,
-  description: p.description,
+  description: p.description ?? "",
   planCount: p.planCount,
-  pricePerPlan: p.pricePerPlan,
-  discount: p.discount,
+  pricePerPlan: Number(p.pricePerPlan),
+  discount: Number(p.discount ?? 0),
   sortOrder: p.sortOrder,
 });
 
-function PackCard({ pack, badge }: { pack: DatePlanPackage; badge?: string }) {
-  const { updatePackage, setPopularPackage, saving } = useDatePlan();
+function PackCard({ pack }: { pack: DatePlanPackage }) {
+  const { updatePackage, setPackageFlag, saving } = useDatePlan();
   const [draft, setDraft] = useState(() => emptyDraft(pack));
 
-  useEffect(() => setDraft(emptyDraft(pack)), [pack]);
+  // Sirf server pe yeh pack badle tab draft reset ho — har refetch pe nahi
+  const syncKey = `${pack.id}:${pack.updatedAt ?? ""}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setDraft(emptyDraft(pack)), [syncKey]);
 
   const set = <K extends keyof typeof draft>(k: K, v: (typeof draft)[K]) =>
     setDraft((d) => ({ ...d, [k]: v }));
@@ -134,47 +168,83 @@ function PackCard({ pack, badge }: { pack: DatePlanPackage; badge?: string }) {
   /* ---------- Auto price calculation ---------- */
   const count = Math.max(0, draft.planCount || 0);
   const perPlan = Math.max(0, draft.pricePerPlan || 0);
-  const discountPct = Math.min(100, Math.max(0, draft.discount || 0));
+  const discountPct = Math.min(90, Math.max(0, draft.discount || 0));
 
-  const baseTotal = Number((count * perPlan).toFixed(2));
-  const discountAmount = Number(((baseTotal * discountPct) / 100).toFixed(2));
-  const finalTotal = Number((baseTotal - discountAmount).toFixed(2));
+  // Backend derivePrice() bhi yahi formula use karta hai — dono same rakhna
+  const baseTotal = Math.round(count * perPlan * 100) / 100;
+  const finalTotal = Math.round(count * perPlan * (100 - discountPct)) / 100;
+  const discountAmount = Math.round((baseTotal - finalTotal) * 100) / 100;
+  const effectivePerPlan = count > 0 ? Math.round((finalTotal / count) * 100) / 100 : 0;
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(emptyDraft(pack));
   const busy = saving === pack.id;
-  const popularBusy = saving === "popular";
+  const popularBusy = saving === `isPopular:${pack.id}`;
+  const bestBusy = saving === `isBestValue:${pack.id}`;
+  const anyBusy = busy || popularBusy || bestBusy;
+  // Hidden pe flag nahi; unsaved edits ho to pehle save (warna refetch draft reset kar dega)
+  const flagDisabled = !pack.isActive || dirty;
+
   const formatINR = (n: number) =>
     `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
+  const badges = [
+    pack.isPopular ? "POPULAR" : null,
+    pack.isBestValue ? "BEST VALUE" : null,
+  ].filter(Boolean) as string[];
+
   const save = () =>
     void updatePackage(pack.id, {
-      title: draft.title,
-      description: draft.description,
+      title: draft.title.trim(),
+      description: draft.description.trim(),
       planCount: count,
       pricePerPlan: perPlan, // list price (pre-discount)
       discount: discountPct,
-      price: finalTotal, // always derived — never hand-edited
+      // price nahi bhejte — backend derive karta hai
       sortOrder: draft.sortOrder,
     });
+
+  const toggleActive = () => {
+    if (pack.isActive && (pack.isPopular || pack.isBestValue)) {
+      const ok = window.confirm(
+        "Is pack ko hide karne se iska Popular / Best Value flag bhi hat jayega. Continue?",
+      );
+      if (!ok) return;
+    }
+    void updatePackage(pack.id, { isActive: !pack.isActive });
+  };
 
   return (
     <div
       className={`relative rounded-2xl border bg-white p-4 dark:bg-white/[0.02] ${
-        pack.isActive
-          ? "border-gray-200 dark:border-gray-800"
-          : "border-gray-200 opacity-60 dark:border-gray-800"
-      }`}
+        pack.isPopular || pack.isBestValue
+          ? "border-pink-300 dark:border-pink-500/40"
+          : "border-gray-200 dark:border-gray-800"
+      } ${pack.isActive ? "" : "opacity-60"}`}
     >
-      {badge && (
-        <span className="absolute -top-2.5 right-4 rounded-full bg-pink-500 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-          {badge}
-        </span>
+      {badges.length > 0 && (
+        <div className="absolute -top-2.5 right-4 flex gap-1">
+          {badges.map((b) => (
+            <span
+              key={b}
+              className="rounded-full bg-pink-500 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+            >
+              {b}
+            </span>
+          ))}
+        </div>
       )}
 
-      <p className="text-gray-900 dark:text-white">
-        <span className="text-xl font-bold">{count}</span>{" "}
-        <span className="text-sm text-gray-400 dark:text-gray-500">plans</span>
-      </p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-gray-900 dark:text-white">
+          <span className="text-xl font-bold">{count}</span>{" "}
+          <span className="text-sm text-gray-400 dark:text-gray-500">plans</span>
+        </p>
+        {!pack.isActive && (
+          <span className="rounded bg-gray-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:bg-white/5 dark:text-gray-400">
+            Hidden
+          </span>
+        )}
+      </div>
 
       {/* ---------- Fields · 2 per row ---------- */}
       <div className="mt-3 grid grid-cols-2 gap-2.5">
@@ -211,7 +281,7 @@ function PackCard({ pack, badge }: { pack: DatePlanPackage; badge?: string }) {
           prefix="%"
           type="number"
           min={0}
-          max={100}
+          max={90}
           value={draft.discount}
           onChange={(e) => set("discount", Number(e.target.value))}
         />
@@ -258,38 +328,52 @@ function PackCard({ pack, badge }: { pack: DatePlanPackage; badge?: string }) {
             {formatINR(finalTotal)}
           </span>
         </div>
+        <p className="text-right text-[10px] text-gray-400 dark:text-gray-500">
+          Effective {formatINR(effectivePerPlan)} / plan
+        </p>
       </div>
 
-      {/* ---------- Status controls · 2 per row ---------- */}
-      <div className="mt-3 grid grid-cols-2 gap-2.5 border-t border-gray-100 pt-3 dark:border-gray-800">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {pack.isActive ? "Active" : "Hidden"}
-          </span>
-          <Toggle
-            enabled={pack.isActive}
-            disabled={busy}
-            onChange={() => void updatePackage(pack.id, { isActive: !pack.isActive })}
-          />
-        </div>
-
-        <button
-          type="button"
-          disabled={pack.isPopular || popularBusy}
-          onClick={() => void setPopularPackage(pack.id)}
-          className={`h-9 rounded-lg border px-2 text-[11px] font-bold transition-colors disabled:cursor-not-allowed ${
-            pack.isPopular
-              ? "border-pink-200 bg-pink-50 text-pink-500 dark:border-pink-500/30 dark:bg-pink-500/10 dark:text-pink-400"
-              : "border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-500 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
-          }`}
-        >
-          {pack.isPopular ? "Popular ✓" : "Set popular"}
-        </button>
+      {/* ---------- Active / Hidden ---------- */}
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {pack.isActive ? "Active · visible in app" : "Hidden from app"}
+        </span>
+        <Toggle enabled={pack.isActive} disabled={anyBusy || dirty} onChange={toggleActive} />
       </div>
+
+      {/* ---------- Popular / Best Value · 2 per row ---------- */}
+      <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+        <FlagButton
+          on={pack.isPopular}
+          busy={popularBusy}
+          disabled={flagDisabled || busy || bestBusy}
+          onLabel="Popular ✓"
+          offLabel="Set popular"
+          onClick={() => void setPackageFlag(pack.id, "isPopular", !pack.isPopular)}
+        />
+        <FlagButton
+          on={pack.isBestValue}
+          busy={bestBusy}
+          disabled={flagDisabled || busy || popularBusy}
+          onLabel="Best value ✓"
+          offLabel="Set best value"
+          onClick={() => void setPackageFlag(pack.id, "isBestValue", !pack.isBestValue)}
+        />
+      </div>
+
+      {dirty ? (
+        <p className="mt-1.5 text-[10px] text-amber-600 dark:text-amber-400">
+          Unsaved changes hain — visibility / flags badalne se pehle save karo
+        </p>
+      ) : !pack.isActive ? (
+        <p className="mt-1.5 text-[10px] text-gray-400 dark:text-gray-500">
+          Hidden pack ko Popular / Best Value nahi bana sakte
+        </p>
+      ) : null}
 
       <button
         type="button"
-        disabled={!dirty || busy}
+        disabled={!dirty || anyBusy}
         onClick={save}
         className="mt-3 w-full rounded-lg bg-pink-500 py-2.5 text-xs font-bold text-white transition-colors hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-40"
       >
@@ -392,9 +476,10 @@ function DatePlans() {
     saving,
     error,
     clearError,
-    bestValueId,
     saveFeatures,
     saveInfo,
+    featuresLoaded,
+    cheapestPackId,
   } = useDatePlan();
 
   /* --- 1. features draft --- */
@@ -405,25 +490,30 @@ function DatePlans() {
   const [boostEnabled, setBoostEnabled] = useState<boolean>(false);
   const [boostPaidOnly, setBoostPaidOnly] = useState<boolean>(false);
 
+  // Sirf server pe features badle tab sync — pack save karne se pricing draft reset nahi hoga
+  const featuresSyncKey = `${featuresLoaded}:${features.id ?? ""}:${features.updatedAt ?? ""}`;
   useEffect(() => {
-    setPostCost(features.costToPostPlan);
+    setPostCost(Number(features.costToPostPlan ?? 0));
     setPostCostEnabled(features.costToPostPlanActive);
     setPostPaidOnly(features.costToPostPlanPaidOnly);
-    setBoostCost(features.planBoostPrice);
+    setBoostCost(Number(features.planBoostPrice ?? 0));
     setBoostEnabled(features.planBoostActive);
     setBoostPaidOnly(features.planBoostPaidOnly);
-  }, [features]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [featuresSyncKey]);
 
   /* --- 3. info draft --- */
   const [howWorks, setHowWorks] = useState<InfoItem[]>([]);
   const [whyBuy, setWhyBuy] = useState<InfoItem[]>([]);
   const [goodToKnow, setGoodToKnow] = useState<InfoItem[]>([]);
 
+  const infoSyncKey = `${info.id ?? ""}:${info.updatedAt ?? ""}`;
   useEffect(() => {
-    setHowWorks(info.howOnePlanWorks);
-    setWhyBuy(info.whyPeopleBuyPlans);
-    setGoodToKnow(info.goodToKnow);
-  }, [info]);
+    setHowWorks(info.howOnePlanWorks ?? []);
+    setWhyBuy(info.whyPeopleBuyPlans ?? []);
+    setGoodToKnow(info.goodToKnow ?? []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [infoSyncKey]);
 
   // NOT persisted — backend field missing
   const [freePlansVipElite, setFreePlansVipElite] = useState<boolean>(true);
@@ -444,6 +534,14 @@ function DatePlans() {
       whyPeopleBuyPlans: whyBuy.filter((i) => i.title.trim()),
       goodToKnow: goodToKnow.filter((i) => i.title.trim()),
     });
+
+  const activeCount = packages.filter((p) => p.isActive).length;
+  const hasPopular = packages.some((p) => p.isActive && p.isPopular);
+  const hasBestValue = packages.some((p) => p.isActive && p.isBestValue);
+  const bestValuePack = packages.find((p) => p.isActive && p.isBestValue);
+  const cheapestPack = packages.find((p) => p.id === cheapestPackId);
+  const bestValueMismatch =
+    !!bestValuePack && !!cheapestPack && bestValuePack.id !== cheapestPack.id;
 
   if (loading) {
     return (
@@ -514,6 +612,7 @@ function DatePlans() {
                 </span>
                 <input
                   type="number"
+                  min={0}
                   value={postCost}
                   onChange={(e) => setPostCost(Number(e.target.value))}
                   className="h-10 w-20 border-l border-gray-200 bg-white px-3 text-right text-sm font-bold text-gray-900 outline-none dark:border-gray-700 dark:bg-transparent dark:text-white"
@@ -549,6 +648,7 @@ function DatePlans() {
                 </span>
                 <input
                   type="number"
+                  min={0}
                   value={boostCost}
                   onChange={(e) => setBoostCost(Number(e.target.value))}
                   className="h-10 w-20 border-l border-gray-200 bg-white px-3 text-right text-sm font-bold text-gray-900 outline-none dark:border-gray-700 dark:bg-transparent dark:text-white"
@@ -584,38 +684,58 @@ function DatePlans() {
             </div>
           </div>
 
-          <div className="flex justify-end border-b border-gray-100 py-4 dark:border-gray-800">
+          <div className="flex flex-wrap items-center justify-end gap-3 border-b border-gray-100 py-4 dark:border-gray-800">
+            {!featuresLoaded && (
+              <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                Pricing server se load nahi hui — save disabled hai taaki live values overwrite na hon
+              </p>
+            )}
             <SaveButton
               onClick={handleSavePricing}
               loading={saving === "features"}
+              disabled={!featuresLoaded}
               label="Save pricing"
             />
           </div>
 
           {/* ========== 2. PACKS ========== */}
           <div className="border-b border-gray-100 py-5 dark:border-gray-800">
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Plan Packs · Edit Only
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Plan Packs · Edit Only
+              </p>
+              {packages.length > 0 && (
+                <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                  {activeCount} of {packages.length} visible in app
+                </p>
+              )}
+            </div>
+
+            {packages.length > 0 && (!hasPopular || !hasBestValue) && (
+              <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                {!hasPopular && !hasBestValue
+                  ? "Koi active pack Popular ya Best Value set nahi hai."
+                  : !hasPopular
+                    ? "Koi active pack Popular set nahi hai."
+                    : "Koi active pack Best Value set nahi hai."}
+              </p>
+            )}
+
+            {bestValueMismatch && (
+              <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-[11px] font-medium text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                &quot;{bestValuePack?.title}&quot; pe Best Value laga hai, par per-plan sabse sasta
+                &quot;{cheapestPack?.title}&quot; hai. Users ko label misleading lagega.
+              </p>
+            )}
 
             {packages.length === 0 ? (
               <p className="mt-3 rounded-xl border border-dashed border-amber-300 bg-amber-50 px-4 py-6 text-center text-xs font-medium text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">
                 No packs found. Seed them via POST /date-plan-packages before this page is usable.
               </p>
             ) : (
-              <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 {packages.map((pack) => (
-                  <PackCard
-                    key={pack.id}
-                    pack={pack}
-                    badge={
-                      pack.isPopular
-                        ? "POPULAR"
-                        : pack.id === bestValueId
-                          ? "BEST VALUE"
-                          : undefined
-                    }
-                  />
+                  <PackCard key={pack.id} pack={pack} />
                 ))}
               </div>
             )}

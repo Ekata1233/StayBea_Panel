@@ -239,12 +239,35 @@ const QUOTA_CODES = [
 const isQuotaCode = (code: string) =>
   (QUOTA_CODES as readonly string[]).includes(code);
 
-const PERIOD_UNIT: Record<string, string> = {
+/* ---------------------- reset period (enum ResetPeriod) ---------------------- */
+type ResetPeriod = "NONE" | "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+
+const RESET_PERIODS: ResetPeriod[] = [
+  "NONE",
+  "DAILY",
+  "WEEKLY",
+  "MONTHLY",
+  "YEARLY",
+];
+
+const PERIOD_UNIT: Record<ResetPeriod, string> = {
+  NONE: "one-time",
   DAILY: "/day",
   WEEKLY: "/wk",
   MONTHLY: "/mo",
-  NONE: "one-time",
+  YEARLY: "/yr",
 };
+
+const PERIOD_OPTION_LABEL: Record<ResetPeriod, string> = {
+  NONE: "One-time (no reset)",
+  DAILY: "Daily (/day)",
+  WEEKLY: "Weekly (/wk)",
+  MONTHLY: "Monthly (/mo)",
+  YEARLY: "Yearly (/yr)",
+};
+
+const toResetPeriod = (v: unknown): ResetPeriod =>
+  RESET_PERIODS.includes(v as ResetPeriod) ? (v as ResetPeriod) : "NONE";
 
 const CATEGORY_DISPLAY: Record<string, { emoji: string; title: string }> = {
   MATCH_DISCOVERY: { emoji: "❤️", title: "Match & discovery" },
@@ -333,12 +356,11 @@ const calcPrice = (t: PriceRow, base: number | undefined): PriceCalc => {
 type LimitRow = {
   id: string;
   code: string;
-  resetPeriodRaw: "NONE" | "DAILY" | "WEEKLY" | "MONTHLY";
+  resetPeriodRaw: ResetPeriod;
   title: string;
   category: string;
   description: string | null;
   emoji: string;
-  unit: string;
   enabled: boolean;
   unlimited: boolean;
   limit: number | null;
@@ -414,12 +436,11 @@ function EditPageInner() {
           d.limits.map((l) => ({
             id: l.id,
             code: l.feature.code,
-            resetPeriodRaw: l.resetPeriod,
+            resetPeriodRaw: toResetPeriod(l.resetPeriod),
             title: l.feature.title,
             category: l.feature.category,
             description: l.feature.description,
             emoji: QUOTA_EMOJI[l.feature.code] ?? "⚙️",
-            unit: PERIOD_UNIT[l.resetPeriod] ?? "",
             enabled: l.enabled,
             unlimited: l.unlimited,
             limit: l.limit,
@@ -456,6 +477,11 @@ function EditPageInner() {
           ? { ...l, unlimited: !l.unlimited, limit: l.unlimited ? 0 : null }
           : l,
       ),
+    );
+
+  const setResetPeriod = (id: string, period: ResetPeriod) =>
+    setLimits((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, resetPeriodRaw: period } : l)),
     );
 
   /* ------ entitlement helpers ------ */
@@ -781,7 +807,8 @@ function EditPageInner() {
                     Limits &amp; quotas
                   </h3>
                   <p className="text-xs text-gray-400">
-                    Set a number or switch to unlimited
+                    Set a number or switch to unlimited · double-click the
+                    period to change it
                   </p>
                 </div>
               </div>
@@ -800,7 +827,11 @@ function EditPageInner() {
                         <p className="text-sm font-bold text-gray-900">
                           {l.title}
                         </p>
-                        <p className="text-xs text-gray-400">{l.unit}</p>
+                        <ResetPeriodLabel
+                          value={l.resetPeriodRaw}
+                          disabled={l.unlimited}
+                          onChange={(v) => setResetPeriod(l.id, v)}
+                        />
                       </div>
                     </div>
 
@@ -1330,5 +1361,80 @@ function FeatureToggle({ on, onClass }: { on: boolean; onClass: string }) {
         }`}
       />
     </span>
+  );
+}
+
+/**
+ * Reset period label for Limits & quotas.
+ * - Shows /day, /wk, /mo, /yr or one-time
+ * - Double-click → dropdown opens
+ * - Enter = save, Esc = cancel, click outside = save
+ * - Unlimited features show "no limit" (reset period has no meaning there)
+ */
+function ResetPeriodLabel({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: ResetPeriod;
+  disabled?: boolean;
+  onChange: (v: ResetPeriod) => void;
+}) {
+  const [editing, setEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState<ResetPeriod>(value);
+
+  React.useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+
+  const commit = () => {
+    if (draft !== value) onChange(draft);
+    setEditing(false);
+  };
+
+  const cancel = () => {
+    setDraft(value);
+    setEditing(false);
+  };
+
+  if (disabled) {
+    return <p className="text-xs text-gray-300">no limit</p>;
+  }
+
+  if (!editing) {
+    return (
+      <p
+        onDoubleClick={() => setEditing(true)}
+        title="Double-click to change reset period"
+        className="w-fit cursor-pointer select-none text-xs text-gray-400 decoration-dotted underline-offset-2 hover:text-rose-500 hover:underline"
+      >
+        {PERIOD_UNIT[value]}
+      </p>
+    );
+  }
+
+  return (
+    <select
+      autoFocus
+      value={draft}
+      onChange={(e) => setDraft(e.target.value as ResetPeriod)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          commit();
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          cancel();
+        }
+      }}
+      onBlur={commit}
+      className="mt-0.5 rounded-lg border border-rose-300 bg-white px-2 py-1 text-xs font-semibold text-gray-900 outline-none"
+    >
+      {RESET_PERIODS.map((p) => (
+        <option key={p} value={p}>
+          {PERIOD_OPTION_LABEL[p]}
+        </option>
+      ))}
+    </select>
   );
 }
