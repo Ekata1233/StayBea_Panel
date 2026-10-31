@@ -721,12 +721,7 @@ function DatePlans() {
               </p>
             )}
 
-            {bestValueMismatch && (
-              <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-[11px] font-medium text-red-600 dark:bg-red-500/10 dark:text-red-400">
-                &quot;{bestValuePack?.title}&quot; pe Best Value laga hai, par per-plan sabse sasta
-                &quot;{cheapestPack?.title}&quot; hai. Users ko label misleading lagega.
-              </p>
-            )}
+          
 
             {packages.length === 0 ? (
               <p className="mt-3 rounded-xl border border-dashed border-amber-300 bg-amber-50 px-4 py-6 text-center text-xs font-medium text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">

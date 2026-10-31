@@ -382,6 +382,7 @@ function EditPageInner() {
   const [tagline, setTagline] = React.useState("");
   const [badge, setBadge] = React.useState("");
   const [visibility, setVisibility] = React.useState("");
+  const [discoveryPool, setDiscoveryPool] = React.useState("");
   const [prices, setPrices] = React.useState<PriceRow[]>([]);
   const [limits, setLimits] = React.useState<LimitRow[]>([]);
 
@@ -409,6 +410,7 @@ function EditPageInner() {
         setTagline(d.tagline);
         setBadge(d.badgeLabel ?? "");
         setVisibility(d.visibilityRule);
+        setDiscoveryPool(d.discoveryPool ?? "");
         setPrices(
           [...d.prices]
             .sort((a, b) => (a.months ?? 0) - (b.months ?? 0))
@@ -571,6 +573,7 @@ function EditPageInner() {
         tagline,
         badgeLabel: badge,
         visibilityRule: visibility,
+        discoveryPool,
         prices: prices.map((p) => {
           const c = calcPrice(p, baseMonthly);
           return {
@@ -702,7 +705,7 @@ function EditPageInner() {
             />
             <HeroStat
               label="POOL"
-              value={detail.discoveryPool}
+              value={discoveryPool || "—"}
               icon={
                 cfg.poolLocked ? (
                   <LockIcon className="h-4 w-4 text-amber-400" />
@@ -763,11 +766,15 @@ function EditPageInner() {
                   />
                 </Field>
 
-                <Field label="DISCOVERY POOL" hint="fixed for this plan">
-                  <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-[#f7f5f2] px-4 py-2.5 text-sm text-gray-600">
-                    <LockIcon className="h-3.5 w-3.5 text-amber-500" />
-                    {detail.discoveryPool}
-                  </div>
+                <Field
+                  label="DISCOVERY POOL"
+                  hint="which pool members of this plan join"
+                >
+                  <input
+                    value={discoveryPool}
+                    onChange={(e) => setDiscoveryPool(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-rose-300"
+                  />
                 </Field>
 
                 <Field
