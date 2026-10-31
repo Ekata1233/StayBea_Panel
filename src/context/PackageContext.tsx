@@ -8,7 +8,7 @@ export type ApiCardFeature = {
   title: string
   description: string | null
   limit: number | null
-  resetPeriod: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY'
+  resetPeriod: "NONE" | "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 }
 
 export type ApiPlanCard = {
@@ -45,7 +45,7 @@ export type ApiDetailLimit = {
   enabled: boolean
   unlimited: boolean
   limit: number | null
-  resetPeriod: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY'
+  resetPeriod: "NONE" | "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
   feature: {
     id: string
     code: string
@@ -108,7 +108,7 @@ export type UpdatePackagePayload = {
     enabled: boolean
     unlimited: boolean
     limit?: number | null
-    resetPeriod: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY'
+    resetPeriod: "NONE" | "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
   }[]
 }
 
