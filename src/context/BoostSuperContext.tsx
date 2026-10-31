@@ -329,7 +329,7 @@ export function BoostSuperProvider({ children }: { children: React.ReactNode }) 
         });
 
         // 2. numeric features
-        await postJSON("/api/admin/boost/features", {
+        await postJSON("/api/boost/features", {
           name: t.name,
           boostDuration: t.boostDuration,
           singleBoostWalletPrice: t.singleBoostWalletPrice,
